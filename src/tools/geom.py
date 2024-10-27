@@ -33,18 +33,35 @@ def locateDistToLine(pp, pl1, pl2):
     c = float(m1) / (m1 + m2)
     return dist(pp, linePoint(pl1, pl2, c)), c
 
-#=================================
 def distToLine(pp, pl1, pl2):
     return locateDistToLine(pp, pl1, pl2)[0]
 
 #=================================
-def locateDistToPoly(pp, poly):
+def locateDistToPoly(pp, poly, is_closed):
     variants = []
-    for idx, pl2 in enumerate(poly[1:]):
-        pl1 = poly[idx]
+    idx_last = len(poly) - 1
+    for idx, pl1 in enumerate(poly):
+        if idx == idx_last:
+            if not is_closed:
+                break
+            pl2 = poly[0]
+        else:
+            pl2 = poly[idx + 1]
         dd, cc = locateDistToLine(pp, pl1, pl2)
+        if cc + Config.TOO_SMALL >= 1.:
+            cc = 1 - Config.TOO_SMALL
         variants.append((dd, cc + idx))
     return min(variants)
+
+def distToPoly(pp, poly, is_closed=False):
+    return locateDistToPoly(pp, poly, is_closed)[0]
+
+#=================================
+def polyDiameter(poly):
+    if len(poly) < 2:
+        return 0
+    return max(max(dist(poly[i], poly[j]) for i in range(j))
+        for j in range(1, len(poly)))
 
 #=================================
 def checkCorrectPath(points, closed_mode, check_self_intersect=True):

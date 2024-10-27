@@ -34,7 +34,7 @@ class PathLogic:
     def checkPosToInsert(self, path_points, p0):
         return None
 
-    def insertToPath(self, path_points, insert_info, pp):
+    def insertToPath(self, path_points, insert_info):
         assert False
 
     def checkPosToRemove(self, path_points, p0):
@@ -124,19 +124,16 @@ class PolyPathLogic(PathLogic):
     def checkPosToInsert(self, path_points, p0):
         if len(path_points) >= Config.MAX_PATH_POINTS:
             return None
-        dist, cc = geom.locateDistToPoly(p0, path_points)
+        dist, cc = geom.locateDistToPoly(p0, path_points, self.mClosed)
         if dist > Config.MIN_DIST:
-            return
-        if abs(cc - round(cc)) < Config.MIN_LOC:
             return None
-        if round(cc + .5) != round(cc):
-            return round(cc) + 1
-        return round(cc)
+        return (int(cc), p0)
 
-    def insertToPath(self, path_points, insert_info, pp):
-        assert 0 <= insert_info < len(path_points) - 1
+    def insertToPath(self, path_points, insert_info):
+        idx, pp = insert_info
+        assert 0 <= idx < len(path_points)
         ret = path_points[:]
-        ret.insert(insert_info + 1, pp)
+        ret.insert(idx + 1, pp)
         if not geom.checkCorrectPath(ret, self.mClosed):
             return None
         return ret
@@ -144,7 +141,7 @@ class PolyPathLogic(PathLogic):
     def checkPosToRemove(self, path_points, p0):
         if len(path_points) <= 3:
             return None
-        dist, cc = geom.locateDistToPoly(p0, path_points)
+        dist, cc = geom.locateDistToPoly(p0, path_points, False)
         if dist < Config.MIN_DIST and abs(cc - round(cc)) < Config.MIN_LOC:
             return round(cc)
         return None
@@ -222,7 +219,23 @@ class SplinePathLogic(PathLogic):
     def modifyPath(self, path_points, modify_info, pp):
         assert 0 <= modify_info < len(path_points)
         ret = path_points[:]
-        ret[modify_info] = pp
+        idx = modify_info
+        assert self.mClosed == (len(path_points) % 3 == 0)
+        if idx % 3 == 0:
+            dd = geom.delta(path_points[idx], pp)
+            idx_p = idx - 1
+            if idx_p < 0 and self.mClosed:
+               idx_p = len(path_points) - 1
+            if idx_p >= 0:
+                ret[idx_p] = geom.addVecWithCoeff(
+                    ret[idx_p], dd, 1)
+            idx_n = idx + 1
+            if idx_n == len(path_points) and self.mClosed:
+                idx_n = 0
+            if idx_n < len(path_points):
+                ret[idx_n] = geom.addVecWithCoeff(
+                    ret[idx_n], dd, 1)
+        ret[idx] = pp
         if not geom.checkCorrectPath(ret, self.mClosed, False):
             return None
         return ret
@@ -231,31 +244,54 @@ class SplinePathLogic(PathLogic):
         if len(path_points) >= Config.MAX_PATH_POINTS:
             return None
         for idx in range(0, len(path_points), 3):
-            pp = path_points[idx:idx+3]
+            pp = path_points[idx:idx+4]
             if len(pp) == 1:
+                assert not self.mClosed
                 break
             elif len(pp) < 4:
                 pp.append(path_points[0])
             spl_poly = geom.splinePoints(pp)
-            dist, cc = geom.locateDistToPoly(p0, spl_poly)
-            if (dist <= Config.MIN_DIST and
-                    cc >= 1 and cc + 1 < len(spl_poly)):
-                lseg = geom.dist(spl_poly[0], spl_poly[-1])
-                cc = int(cc)
-                dd = geom.delta(spl_poly[cc + 1], spl_poly[cc - 1])
-                lchunk = geom.dist(dd, (0, 0))
-                if lchunk < Config.TOO_SMALL:
-                    continue
-                cc = float(lseg) / lchunk
-                return (idx, (cc * dd[0], cc* dd[1]))
+            dist, cc = geom.locateDistToPoly(p0, spl_poly, False)
+            if dist > Config.MIN_DIST:
+                continue
+            spl_idx = int(cc)
+            if not ( 0 < spl_idx < len(spl_poly) - 1):
+                continue
+            seg = spl_poly[spl_idx - 1], spl_poly[spl_idx + 1]
+            p_insert = geom.linePoint(*seg, cc - spl_idx)
+
+            len_poly = float(geom.polyDiameter(spl_poly))
+            if len_poly < 4 * Config.MIN_DIST:
+                continue
+            d_chunk = geom.delta(*seg)
+            len_chunk = geom.dist(d_chunk, (0, 0))
+            if len_chunk < Config.TOO_SMALL:
+                continue
+            c_chunk = len_poly / len_chunk
+            d_insert = [c_chunk * z for z in d_chunk]
+
+            alpha = float(cc) / len(spl_poly)
+            patch_seg = [
+                geom.addVecWithCoeff(
+                    pp[0], geom.delta(pp[0], pp[1]), alpha),
+                geom.addVecWithCoeff(p_insert, d_insert, -.25),
+                p_insert,
+                geom.addVecWithCoeff(p_insert, d_insert, .25),
+                geom.addVecWithCoeff(
+                    pp[3], geom.delta(pp[3], pp[2]), 1 - alpha)]
+
+            check_points = path_points[:]
+            check_points[idx+1:idx+3] = patch_seg
+            if not geom.checkCorrectPath(check_points, self.mClosed):
+                return None
+            return (idx, patch_seg)
         return None
 
-    def insertToPath(self, path_points, insert_info, pp):
-        idx, dd = insert_info
+    def insertToPath(self, path_points, insert_info):
+        idx, patch_seg = insert_info
         assert 0 <= idx < len(path_points) - 2 and idx % 3 == 0
         ret = path_points[:]
-        ret[idx+1:idx+1] = [geom.addVecWithCoeff(pp, dd, -.33),
-            pp, geom.addVecWithCoeff(pp, dd, .33)]
+        ret[idx+1:idx+3] = patch_seg
         if not geom.checkCorrectPath(ret, self.mClosed):
             return None
         return ret
@@ -364,7 +400,7 @@ class MarkupPath:
         assert modify_info[0] is self
         _, mode, info = modify_info
         if mode == "insert":
-            return self.mLogic.insertToPath(self.mPoints, info, pp)
+            return self.mLogic.insertToPath(self.mPoints, info)
         elif mode == "remove":
             return self.mLogic.removeInPath(self.mPoints, info)
         return self.mLogic.modifyPath(self.mPoints, info, pp)

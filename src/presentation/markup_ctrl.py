@@ -36,11 +36,7 @@ class _PathHandler:
         return self.mPath
 
     def distToPoint(self, pp):
-        dd, _ = geom.locateDistToPoly(pp, self.mPoly)
-        if self.mPath.isClosed():
-            return min(dd, geom.distToLine(pp,
-                self.mPoly[0], self.mPoly[-1]))
-        return dd
+        return geom.distToPoly(pp, self.mPoly, self.mPath.isClosed())
 
 #=================================
 class MarkupPathController(MouseScenario_Generic):

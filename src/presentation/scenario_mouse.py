@@ -195,42 +195,6 @@ class MouseScenario_Generic(MouseEventListener):
         self.onDeactivate()
 
     #====================
-    def _getChangeMode(self, event, push_mode):
-        if ((push_mode and self.buttonIsLeft(event)) or
-                (not push_mode and self.noButtons(event))):
-            if self.ctrlMode(event):
-                return "remove"
-            if self.shiftMode(event):
-                return "insert"
-            return ""
-        return "bad"
-
-    def _highlightCur(self, pos, mode):
-        if mode != "bad":
-            for path_obj in self.getPathList():
-                info = path_obj.checkPos(pos, mode)
-                if info is not None:
-                    self.setCurMod(info)
-                    return
-        self.setCurMod(None)
-
-    def _drawCur(self, pos, mode=None):
-        if self.mCurModInfo is None:
-            self.setCursor(QtCore.Qt.ArrowCursor)
-            return
-        cur_path, cur_mode, _ = self.mCurModInfo
-        if mode != "bad" or self.mCurModInfo[1] != mode:
-            self.setCurMod(None)
-            self.setCursor(QtCore.Qt.ArrowCursor)
-            return
-        path_poly = cur_path.viewModifyPos(self.mCurModInfo, pos)
-        self.viewPathPoly(path_poly)
-        if path_poly is None:
-            self.setCursor(QtCore.Qt.ForbiddenCursor)
-        else:
-            self.setCursor(QtCore.Qt.CrossCursor)
-
-    #====================
     sModeCursors = {
         "": QtCore.Qt.CrossCursor,
         "insert": QtCore.Qt.UpArrowCursor,
@@ -242,11 +206,12 @@ class MouseScenario_Generic(MouseEventListener):
         if cur_path is None:
             return None
         if self.ctrlMode(event):
+            if self.shiftMode(event):
+                return None
             return cur_path.checkPos(pos, "remove")
-        mod_info = cur_path.checkPos(pos, "")
-        if mod_info is not None:
-            return mod_info
-        return cur_path.checkPos(pos, "insert")
+        if self.shiftMode(event):
+            return cur_path.checkPos(pos, "insert")
+        return cur_path.checkPos(pos, "")
 
     def _drawCurMod(self, pos):
         if self.mCurModInfo is None:
