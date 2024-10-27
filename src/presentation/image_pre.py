@@ -197,7 +197,7 @@ class ImagePresentation:
 
     def _reservePolygon(self):
         if len(self.mPolygonItems) == self.mPolygonUsageCount:
-            poly_item = QtWidgets.QGraphicsPolygonItem()
+            poly_item = QtWidgets.QGraphicsPathItem()
             poly_item.hide()
             self.mPolygonItems.append(poly_item)
             self.mPolygonGroup.addToGroup(poly_item)

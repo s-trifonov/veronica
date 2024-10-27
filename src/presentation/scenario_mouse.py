@@ -175,6 +175,9 @@ class MouseScenario_Generic(MouseEventListener):
     def onUnclick(self, event):
         pass
 
+    def mouseBlocked(self):
+        return False
+
     #====================
     def setCurMod(self, mod_info = None):
         self.mCurModInfo = mod_info
@@ -260,6 +263,9 @@ class MouseScenario_Generic(MouseEventListener):
 
     #====================
     def mouseMoveEvent(self, event):
+        if self.mouseBlocked():
+            self.setCursor(QtCore.Qt.WhatsThisCursor)
+            return
         if self.subScenario() is not None:
             self.subScenario().mouseMoveEvent(event)
             return
@@ -276,8 +282,11 @@ class MouseScenario_Generic(MouseEventListener):
 
     def mousePressEvent(self, event):
         self.onClick(event)
+        if self.mouseBlocked():
+            self.setCursor(QtCore.Qt.WhatsThisCursor)
+            return
         if self.subScenario() is not None:
-            self.subScenario().mouseMoveEvent(event)
+            self.subScenario().mousePressEvent(event)
             return
         pos = self.mapPos(event)
         if self.buttonIsLeft(event):
@@ -298,8 +307,11 @@ class MouseScenario_Generic(MouseEventListener):
 
     def mouseReleaseEvent(self, event):
         self.onUnclick(event)
+        if self.mouseBlocked():
+            self.setCursor(QtCore.Qt.WhatsThisCursor)
+            return
         if self.subScenario() is not None:
-            self.subScenario().mouseMoveEvent(event)
+            self.subScenario().mouseReleaseEvent(event)
             return
 
         pos = self.mapPos(event)

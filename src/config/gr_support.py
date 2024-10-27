@@ -89,7 +89,8 @@ class GraphicsSupport:
     sStdBrushes = {
         "blot": QBrush(QtCore.Qt.cyan, QtCore.Qt.CrossPattern),
         "dirt": QBrush(QtCore.Qt.blue, QtCore.Qt.Dense5Pattern),
-        "_active": QBrush(QtCore.Qt.red)
+        "_active": QBrush(QtCore.Qt.red),
+        "_transparent": QBrush(QtCore.Qt.transparent)
     }
 
     for tp, color in sTypeColor.items():
@@ -123,11 +124,14 @@ class GraphicsSupport:
     @classmethod
     def readyPolygon(cls, poly_item, points, vtype, is_closed, is_current):
         poly_item.hide()
-        poly_item.setPen(cls.stdPen("_current" if is_current else vtype))
-        poly_item.setBrush(cls.stdBrush(vtype))
         pp_seq = [QtCore.QPointF(x, y) for x, y in points]
         if is_closed:
             pp_seq.append(pp_seq[0])
-        poly_item.setPolygon(QtGui.QPolygonF(pp_seq))
+        paint_path = QtGui.QPainterPath()
+        paint_path.addPolygon(QtGui.QPolygonF(pp_seq))
+        poly_item.setPath(paint_path)
+        poly_item.setPen(cls.stdPen("_current" if is_current else vtype))
+        poly_item.setBrush(cls.stdBrush(vtype
+            if is_closed else "_transparent"))
 
 #=================================

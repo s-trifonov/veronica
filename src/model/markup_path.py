@@ -317,7 +317,7 @@ class MarkupPath:
 
     def changeType(self, type):
         self.mType = type
-        self.mLogic = self.sTypeMap(self.mType)
+        self.mLogic = self.sTypeMap[self.mType]
 
     def checkPrePoint(self, pp):
         pre_points = self.mPoints + [pp]

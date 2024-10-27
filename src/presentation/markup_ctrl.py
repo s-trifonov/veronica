@@ -58,15 +58,25 @@ class MarkupPathController(MouseScenario_Generic):
     def isActive(self):
         return self.mIsActive
 
-    def getCurPathIdx(self):
-        if not self.mIsActive or self.mCurPathH is None:
+    def getPathCount(self):
+        return len(self.mPathList)
+
+    def _getCurPathH(self):
+        if (not self.mIsActive or self.mNewPathCtrl is not None):
             return None
-        return self.mCurPathH.getIdx()
+        return self.mCurPathH
+
+    def getCurPathIdx(self):
+        path_h = self._getCurPathH()
+        if path_h is None:
+            return None
+        return path_h.getIdx()
 
     def getCurPath(self):
-        if not self.mIsActive or self.mCurPathH is None:
+        path_h = self._getCurPathH()
+        if path_h is None:
             return None
-        return self.mCurPathH.getPath()
+        return path_h.getPath()
 
     def getNewPath(self):
         if not self.mIsActive or self.mNewPathCtrl is None:
@@ -88,6 +98,7 @@ class MarkupPathController(MouseScenario_Generic):
         self._curGrPoints()
 
     def reload(self, path_info_seq=None, cur_idx=None):
+        self.setCurMod(None)
         if path_info_seq is None:
             self.mPathList = []
         else:
@@ -95,7 +106,6 @@ class MarkupPathController(MouseScenario_Generic):
                 for idx, path_info in enumerate(path_info_seq)]
         self.mCurPathH = (self.mPathList[cur_idx] if cur_idx is not None and
             0 <= cur_idx < len(self.mPathList) else None)
-        self.setCurMod(None)
         if self.mIsActive:
             self._reserveGr()
             self.drawAll()
@@ -210,6 +220,9 @@ class MarkupPathController(MouseScenario_Generic):
         if self.mMarkupHidden:
             self.mMarkupHidden = False
             self.getViewPort().showMarkup(True)
+
+    def mouseBlocked(self):
+        return self.mMarkupHidden
 
 #=================================
 class NewPathSubController(MouseScenario_NewPath):

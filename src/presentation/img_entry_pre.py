@@ -43,10 +43,12 @@ class ImageEntryPresentation:
         self.mImageH = False
         self.mInfoData = None
         self.mLearnData = None
-        self.mTabLoc = None
+        self.mForwardLoc = None
         self.mPostNewPath = False
+        self.mInUpdate = False
 
     def resetState(self):
+        self.mInUpdate = True
         self.mImageH = self.mTopPre.getCurImage()
         if self.mImageH is not None:
             self.mInfoData = self.mImageH.getAnnotationData(
@@ -56,13 +58,17 @@ class ImageEntryPresentation:
         else:
             self.mInfoData, self.mLearnData = {}, None
 
-        self.mMarkupPathCtrl.reload(self._prepareMarkupInfo())
-
         self.mTabs["learn"].setDisabled(self.mLearnData is None)
         self.mTabs["info"].setDisabled(self.mImageH is None)
 
-        tab_loc, self.mTabLoc = self.mTabLoc, None
-        if tab_loc is None:
+        forward_loc, self.mForwardLoc = self.mForwardLoc, None
+        forward_idx = None
+        if forward_loc is not None:
+            if isinstance(forward_loc, str):
+                tab_loc = forward_loc
+            else:
+                tab_loc, forward_idx = forward_loc
+        else:
             if self.mLearnData is None:
                 tab_loc = "info"
             elif (self.mLearnData is not None and
@@ -70,6 +76,8 @@ class ImageEntryPresentation:
                     self.mTopPre.getCurRound().getType() == "learn"):
                 tab_loc = "learn"
         self.mTabs[tab_loc].setCurrent()
+
+        self.mMarkupPathCtrl.reload(self._prepareMarkupInfo(), forward_idx)
 
         self.mInfoCtrl["quality"].setValue(self.mInfoData.get("quality", 0))
         self.mInfoCtrl["mark"].setValue(self.mInfoData.get("mark", "*"))
@@ -85,10 +93,12 @@ class ImageEntryPresentation:
                     newQItem(self.mTopPre.getMarkupTypeName(type)),
                     newQItem(str(len(points)))])
                 _no += 1
+        self.mInUpdate = False
 
     def update(self):
         if self.mImageH is not self.mTopPre.getCurImage():
             self.resetState()
+        self.mInUpdate = True
 
         if self._infoChanged():
             avail_op = ["save", "clear-changes"]
@@ -129,8 +139,8 @@ class ImageEntryPresentation:
         self.mTopPre.getEnv().disableAction("img-entry-path-delete",
             cur_path is None)
         self.mButtonPathCreate.setChecked(new_path is not None)
-        self.mComboPathType.setDisabled(new_path is not None and
-            new_path.canChangeType())
+        self.mComboPathType.setDisabled(new_path is None or
+            not new_path.canChangeType())
         self.mTableView.setDisabled(new_path is not None)
 
         self.mTopPre.getEnv().disableAction("img-entry-markup-done",
@@ -142,6 +152,7 @@ class ImageEntryPresentation:
         self.mButtonMarkupDone.setHidden(self.mLearnData is None)
         self.mButtonMarkupDone.setChecked(self.mLearnData is not None and
             self.mLearnData["status"] == "ready")
+        self.mInUpdate = False
 
     def _startNewPath(self):
         self.mMarkupPathCtrl.startNewPath(self.mComboPathType.getValue())
@@ -174,55 +185,66 @@ class ImageEntryPresentation:
         return None
 
     def onChangeSelection(self):
-        if self.mMarkupPathCtrl.isActive():
+        if self.mMarkupPathCtrl.isActive() and not self.mInUpdate:
             index = self.mTableView.selectionModel().currentIndex()
             if index is not None:
                 self.mMarkupPathCtrl.setCurPath(index.row(), True)
                 self.needsUpdate()
 
     #=====================
+    def _curLoc(self):
+        if self.mTabs["learn"].isCurrent():
+            return ("learn", self.mMarkupPathCtrl.getCurPathIdx())
+        return "info"
+
     def _prepareMarkupInfo(self):
         if self.mLearnData is not None and "seq" in self.mLearnData:
             return self.mLearnData["seq"][:]
         return []
 
     def newPathCompleted(self, path_ctrl):
-        data = self.mImageH.startAnnotationChange(self.mRounds["learn"])
+        data = self.mImageH.startAnnotationChange(
+            self.mRounds["learn"], cur_loc = self._curLoc())
         if "seq" not in data:
             data["seq"] = []
         path_obj = path_ctrl.getPath()
         data["seq"].append([
             path_obj.getType(),
             [list(pp) for pp in path_obj.getPoints()]])
-        self.mImageH.finishAnnotationChange("info")
-        self.mImageH = None
+        self.mForwardLoc = ("learn", self.mMarkupPathCtrl.getPathCount())
+        self.mImageH.finishAnnotationChange(self.mForwardLoc)
         self.mPostNewPath = True
-        self.needsUpdate()
+        self._resetImage()
 
     def pathChanged(self, path_obj, path_idx):
-        data = self.mImageH.startAnnotationChange(self.mRounds["learn"])
+        data = self.mImageH.startAnnotationChange(
+            self.mRounds["learn"], cur_loc = self._curLoc())
         data["seq"][path_idx] = [
             path_obj.getType(),
             [list(pp) for pp in path_obj.getPoints()]]
-        self.mImageH.finishAnnotationChange("info")
+        self.mImageH.finishAnnotationChange()
         self._resetImage()
-        self.needsUpdate()
 
     def pathDelete(self, path_idx):
         if path_idx is None or path_idx < 0:
             return
-        data = self.mImageH.startAnnotationChange(self.mRounds["learn"])
+        data = self.mImageH.startAnnotationChange(
+            self.mRounds["learn"], cur_loc = ("learn", path_idx))
         del data["seq"][path_idx]
-        self.mImageH.finishAnnotationChange("info")
+        self.mForwardLoc = ("learn", max(path_idx - 1, 0))
+        self.mImageH.finishAnnotationChange(self.mForwardLoc)
         self._resetImage()
-        self.needsUpdate()
 
     def needsUpdate(self):
         self.mTopPre.needsUpdate(check_guard=False)
         self.mTopPre.getEnv().postAction("relax")
 
     #=====================
-    def _resetImage(self):
+    def _resetImage(self, forward_loc = None):
+        if forward_loc is not None:
+            self.mForwardLoc = forward_loc
+        elif self.mForwardLoc is None:
+            self.mForwardLoc = self._curLoc()
         self.mTopPre.updateImage(self.mImageH)
         self.resetState()
         self.needsUpdate()
@@ -240,8 +262,10 @@ class ImageEntryPresentation:
 
         if act.isAction("save"):
             if self._infoChanged():
-                self.mImageH.startAnnotationChange(self.mRounds["info"],
-                    self._makeChangedInfo(), cur_loc = "info")
+                self.mImageH.startAnnotationChange(
+                    self.mRounds["info"],
+                    self._makeChangedInfo(),
+                    cur_loc = self._curLoc())
                 self.mImageH.finishAnnotationChange()
             self.mImageH.doSave()
             self._resetImage()
@@ -258,7 +282,7 @@ class ImageEntryPresentation:
         if act.isAction("undo"):
             if (self.mImageH is not None and not self._infoChanged()
                     and "undo" in self.mImageH.getAvailableActions()):
-                self.mTabLoc = self.mImageH.undoChange()
+                self.mForwardLoc = self.mImageH.undoChange()
                 self._resetImage()
                 act.done()
             return
@@ -266,20 +290,21 @@ class ImageEntryPresentation:
         if act.isAction("redo"):
             if (self.mImageH is not None and not self._infoChanged()
                     and "redo" in self.mImageH.getAvailableActions()):
-                self.mTabLoc = self.mImageH.redoChange()
+                self.mForwardLoc = self.mImageH.redoChange()
                 self._resetImage()
                 act.done()
             return
 
         if act.isAction("to-learn"):
             if self.mLearnData is None:
-                self.mImageH.startAnnotationChange(self.mRounds["learn"],
-                    {"status": "process"}, cur_loc = "info")
+                self.mImageH.startAnnotationChange(
+                    self.mRounds["learn"],
+                    {"status": "process"},
+                    cur_loc = self._curLoc())
                 self.mImageH.finishAnnotationChange("learn")
                 self.mImageH.doSave()
                 self.mImageH.reset(True)
-                self.mTabLoc = "learn"
-                self._resetImage()
+                self._resetImage(("learn", None))
                 act.done()
             return
 
@@ -289,24 +314,23 @@ class ImageEntryPresentation:
                     msg("img.out-of-learn.confirm"),
                     (msg("img.out-of-learn.yes"), msg("img.out-of-learn.no")))
                 if ret == 0:
-                    self.mImageH.startAnnotationChange(self.mRounds["learn"],
-                        None, cur_loc = "learn")
+                    self.mImageH.startAnnotationChange(
+                        self.mRounds["learn"], None, cur_loc = self._curLoc())
                     self.mImageH.finishAnnotationChange("info")
                     self.mImageH.doSave()
                     self.mImageH.reset(True)
-                    self.mTabLoc = "info"
-                    self._resetImage()
+                    self._resetImage("info")
                 act.done()
             return
 
         if act.isAction("markup-done"):
             if self.mLearnData is not None:
-                data = self.mImageH.startAnnotationChange(self.mRounds["learn"])
+                data = self.mImageH.startAnnotationChange(
+                    self.mRounds["learn"], cur_loc = self._curLoc())
                 data["status"] = "ready" if data.get("status") != "ready" else "process"
-                self.mImageH.finishAnnotationChange("info")
+                self.mImageH.finishAnnotationChange()
                 self.mImageH.doSave()
                 self.mImageH.reset(True)
-                self.mTabLoc = "learn"
                 self._resetImage()
                 act.done()
             return
