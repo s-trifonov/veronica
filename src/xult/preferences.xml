@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<dialog title="prefs.title" id="preferences-dialog"
+    screen-x="100" screen-y="100" icon="veronica.png"
+    width="600" height="150" persist="screen-region" layout="vbox">
+    <form>
+        <line-edit id="prefs-ext-edit"
+            title="prefs.ext-edit" tooltip="prefs.ext-edit.tip" />
+        <line-edit id="prefs-file-kbd"
+            title="prefs.file.kbd"/>
+    </form>
+    <tool-button command="prefs-edit-kbd" text="prefs.edit.kbd"/>
+    <dialog-button-box align="center">
+        <dialog-button role="accept" text="prefs.save"/>
+        <dialog-button role="reject" text="prefs.close"/>
+    </dialog-button-box>
+</dialog>

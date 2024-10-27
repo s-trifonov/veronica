@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<main title="menu.title" id="Top" screen-x="100" screen-y="100" icon="veronica.png"
+        width="1000"  height="600" persist="screen-region">
+    <menu-bar id="menubar">
+        <menu  title="menu.file">
+            <menu-action command="all-save" text="menu.save.all" />
+            <menu-action text="menu.prefs" command="menu-preferences"/>
+            <menu-action text="menu.exit" command="menu-exit" />
+        </menu>
+
+        <menu title="menu.edit">
+            <menu-action command="img-entry-save" text="img.save.tip" />
+            <menu-action command="img-entry-to-learn" text="img.to-learn" />
+            <menu-action command="img-entry-out-of-learn" text="img.out-of-learn" />
+            <menu-separator/>
+            <menu-action command="img-entry-undo" text="menu.undo" />
+            <menu-action command="img-entry-redo"   text="menu.redo" />
+            <menu-separator/>
+            <menu-action command="img-entry-markup-done" text="menu.markup.done" checkable="true"/>
+            <menu-action command="img-entry-path-create" text="markup.path.create.tip" />
+            <menu-action command="img-entry-path-delete"  text="markup.path.delete.tip" />
+        </menu>
+
+        <menu title="menu.help">
+          <menu-action  text="menu.about" command="menu-about"/>
+        </menu>
+
+        <hbox placement="corner-top-right">
+            <separator orient="vertical"/>
+            <combo-box id="img-zoom" tooltip="img.zoom.tip"
+                command="!img-check-zoom" fixed-width="100"
+                    value="40%" persist="value">
+                <item value="10%" image="zoom.png"/>
+                <item value="15%" image="zoom.png"/>
+                <item value="20%" image="zoom.png"/>
+                <item value="25%" image="zoom.png"/>
+                <item value="30%" image="zoom.png"/>
+                <item value="35%" image="zoom.png"/>
+                <item value="40%" image="zoom.png"/>
+                <item value="45%" image="zoom.png"/>
+                <item value="50%" image="zoom.png"/>
+                <item value="55%" image="zoom.png"/>
+                <item value="60%" image="zoom.png"/>
+                <item value="65%" image="zoom.png"/>
+                <item value="70%" image="zoom.png"/>
+                <item value="75%" image="zoom.png"/>
+                <item value="80%" image="zoom.png"/>
+                <item value="85%" image="zoom.png"/>
+                <item value="90%" image="zoom.png"/>
+                <item value="95%" image="zoom.png"/>
+                <item value="100%" image="zoom.png"/>
+                <item value="110%" image="zoom.png"/>
+                <item value="120%" image="zoom.png"/>
+                <item value="130%" image="zoom.png"/>
+                <item value="140%" image="zoom.png"/>
+                <item value="150%" image="zoom.png"/>
+                <item value="160%" image="zoom.png"/>
+                <item value="170%" image="zoom.png"/>
+                <item value="180%" image="zoom.png"/>
+                <item value="190%" image="zoom.png"/>
+                <item value="200%" image="zoom.png"/>
+             </combo-box>
+            <label/>
+            <separator orient="vertical"/>
+            <combo-box id="img-opacity" tooltip="img.opacity.tip"
+                command="!img-check-opacity" fixed-width="100"
+                    value="100" persist="value">
+                <item value="100" label="100%"/>
+                <item value="75" label="75%"/>
+                <item value="50" label="50%"/>
+                <item value="25" label="25%"/>
+                <item value="10" label="10%"/>
+            </combo-box>
+        </hbox>
+    </menu-bar>
+    <grid placement="central">
+        <hbox id="main">
+            <splitter id="main-splitter-h" orient="horizontal"
+                persist="split-sizes">
+                <hbox>
+                    <splitter id="main-splitter-left" orient="vertical"
+                        persist="split-sizes">
+                        <combo-box id="dir-round" tooltip="dir.round.tip"
+                            command="!dir-check-round"  fixed-height="20"
+                                value="" persist="value">
+                                <item value="" text="dir.round.all"/>
+                                <item value="learn" text="dir.round.learn"/>
+                        </combo-box>
+                        <tree-widget id="dir-image-tree" icon-size="25 25"
+                            main-column-no="1" persist="column-sizes">
+                            <column label=" "/>
+                            <column/>
+                        </tree-widget>
+                        <vbox>
+                            <status-bar>
+                                <tool-button command="img-entry-save" tooltip="img.save.tip"
+                                    image="save.png"   img-size="25 25"/>
+                                <tool-button command="img-entry-clear-changes" tooltip="img.clear-changes.tip"
+                                    image="clear_ch.png" img-size="25 25"/>
+                                <tool-button command="img-entry-undo" tooltip="img.undo.tip"
+                                    image="reg_back.png" img-size="25 25"/>
+                                <tool-button command="img-entry-redo" tooltip="img.redo.tip"
+                                    image="reg_forw.png" img-size="25 25"/>
+                                <separator/>
+                                <check-box id="markup-done" command="!img-entry-markup-done"
+                                tooltip="menu.markup.done" hidden="true"/>
+                            </status-bar>
+                            <tab-box id="img-entry-tabbox" position="south" cur-idx="0"
+                                command="!img-entry-tab" size-policy="expanding expanding">
+                                <tab id="img-entry-tab-info" text="img.entry.tab.info"
+                                    layout="grid" sclass="bg_white_y">
+                                    <form id="info-edit-1">
+                                        <spin-box id="info-edit-quality" tooltip="info.edit.quality.tip"
+                                        title="info.edit.quality.title"
+                                        command="!img-entry-edit-info"
+                                        fixed-width="50" min="0" max="5"/>
+                                        <combo-box id="info-edit-mark" tooltip="info.edit.mark.tip"
+                                            title="info.edit.mark.title"
+                                            command="!img-entry-edit-info"  fixed-height="20">
+                                            <item value="*" label="*"/>
+                                            <item value="!" label="!"/>
+                                            <item value="?" label="?"/>
+                                            <item value="#" label="#"/>
+                                        </combo-box>
+                                        <line-edit id="info-edit-note" command="!img-entry-edit-info"
+                                        title="info.edit.note.title"/>
+                                    </form>
+                                    <hbox min-height="30" align="bottom">
+                                        <push-button text="img.to-learn" command="img-entry-to-learn"/>
+                                    </hbox>
+                                </tab>
+                                <tab id="img-entry-tab-learn" text="img.entry.tab.learn">
+                                    <vbox>
+                                        <table-view id="markup-path-table" persist="column-sizes"
+                                            size-policy="min-exp expanding">
+                                            <column text="markup.path.no" />
+                                            <column text="markup.path.type" />
+                                            <column text="markup.path.points" />
+                                        </table-view>
+                                        <hbox fixed-height="30">
+                                            <combo-box id="markup.path.type" tooltip="markup.path.type.tip"
+                                                command="!img-entry-markup-type">
+                                                <item value="vesicula" text="markup.path.type.vesicula"/>
+                                                <item value="v-seg" text="markup.path.type.v-seg"/>
+                                                <item value="v-joint" text="markup.path.type.v-joint"/>
+                                                <item value="blot" text="markup.path.type.blot"/>
+                                                <item value="dirt" text="markup.path.type.dirt"/>
+                                            </combo-box>
+                                            <push-button id="markup-path-create" command="!img-entry-path-create"
+                                            img-size="25 25" image="add.png" tooltip="markup.path.create.tip"
+                                            checkable="true"/>
+                                            <tool-button id="markup-path-delete" command="!img-entry-path-delete"
+                                            img-size="25 25" image="delete.png" tooltip="markup.path.delete.tip"/>
+                                        </hbox>
+                                    </vbox>
+                               </tab>
+                            </tab-box>
+                        </vbox>
+                    </splitter>
+                </hbox>
+                <graphics-view id="the-image"/>
+            </splitter>
+        </hbox>
+    </grid>
+    <status-bar>
+        <label id="menu-status" stretch="1"/>
+        <hbox placement="permanent" fixed-width="220" layout-margins="0">
+            <separator orient="vertical"/>
+            <progress-bar id="menu-progress" fixed-width="100" />
+            <tool-button-menu id="mode-changing" img-size="20 20"
+                 image="mode_ch.png" tooltip="mode.changing.tip" disabled="true"/>
+            <label id="prj-status"/>
+        </hbox>
+    </status-bar>
+</main>
