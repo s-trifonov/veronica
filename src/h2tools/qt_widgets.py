@@ -100,6 +100,9 @@ class ComboBoxWithValues(QtWidgets.QComboBox):
                 self.setItemData(idx, 0, QtCore.Qt.UserRole - 1)
         self.setDisabled(count_good < 2)
 
+    def makeAllEnabled(self):
+        self.setEnabledItems(self.mValues, self.getValue())
+
     def setValue(self, value, needs_update_style = False):
         set_value = False
         value = str(value)

@@ -65,7 +65,7 @@ class GraphicsSupport:
     sTypeColor = {
         "vesicula":  QtCore.Qt.darkBlue,
         "v-seg":     QtCore.Qt.darkMagenta,
-        "v-joint":   QtCore.Qt.darkGreen,
+        "barrier":   QtCore.Qt.cyan,
         "blot":      QtCore.Qt.darkCyan,
         "dirt":      QtCore.Qt.black
     }
@@ -73,7 +73,7 @@ class GraphicsSupport:
     sTypeWidth = {
         "vesicula":  4,
         "v-seg":     3,
-        "v-joint":   4,
+        "barrier":   4,
         "blot":      2,
         "dirt":      2
     }

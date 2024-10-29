@@ -40,9 +40,11 @@ class TopPresentation:
         self.mEnv.getUICtrl().getTopWidget().setListeners(
             self.listenKey, self.doExit)
 
+        self.mMarkupTypeList = ["vesicula", "v-seg", "barrier", "blot", "dirt"]
+
         self.mMarkupTypeNames = {
             key: msg("markup.path.type." + key)
-            for key in ("vesicula", "v-seg", "v-joint", "blot", "dirt")
+            for key in self.mMarkupTypeList
         }
 
         self.mCurImage = None
@@ -199,6 +201,9 @@ class TopPresentation:
 
     def blockEntry(self, value):
         self.mDirPre.setDisabled(value)
+
+    def getMarkupTypeList(self):
+        return self.mMarkupTypeList
 
     def getMarkupTypeName(self, name):
         return self.mMarkupTypeNames.get(name, "???")

@@ -25,6 +25,10 @@ class PathLogic:
     def preBuildPath(self, pre_points):
         assert False
 
+    def getSignature(self):
+        return "/".join([self.getPathKind(),
+            ["open", "closed"][self.isClosed()]])
+
     def checkPosToModify(self, path_points, p0):
         return None
 
@@ -142,7 +146,7 @@ class PolyPathLogic(PathLogic):
         if len(path_points) <= 3:
             return None
         dist, cc = geom.locateDistToPoly(p0, path_points, False)
-        if dist < Config.MIN_DIST and abs(cc - round(cc)) < Config.MIN_LOC:
+        if dist <= Config.MIN_DIST:
             return round(cc)
         return None
 
@@ -252,7 +256,7 @@ class SplinePathLogic(PathLogic):
                 pp.append(path_points[0])
             spl_poly = geom.splinePoints(pp)
             dist, cc = geom.locateDistToPoly(p0, spl_poly, False)
-            if dist > Config.MIN_DIST:
+            if dist > Config.MIN_DIAMETER:
                 continue
             spl_idx = int(cc)
             if not ( 0 < spl_idx < len(spl_poly) - 1):
@@ -261,7 +265,7 @@ class SplinePathLogic(PathLogic):
             p_insert = geom.linePoint(*seg, cc - spl_idx)
 
             len_poly = float(geom.polyDiameter(spl_poly))
-            if len_poly < 4 * Config.MIN_DIST:
+            if len_poly < Config.MIN_DIAMETER:
                 continue
             d_chunk = geom.delta(*seg)
             len_chunk = geom.dist(d_chunk, (0, 0))
@@ -326,7 +330,7 @@ class MarkupPath:
     sTypeMap = {
         "vesicula": SplinePathLogic(True),
         "v-seg": SplinePathLogic(False),
-        "v-joint": LinePathLogic(),
+        "barrier": SplinePathLogic(False),
         "blot": SplinePathLogic(True),
         "dirt": PolyPathLogic(True)
     }
@@ -348,10 +352,24 @@ class MarkupPath:
     def isClosed(self):
         return self.mLogic.isClosed()
 
-    def canChangeType(self):
-        return len(self.mPoints) <= 2
+    def canChangeType(self, type = None):
+        if len(self.mPoints) <= 2:
+            return True
+        return (type is not None and self.mLogic.getSignature() ==
+            self.sTypeMap[type].getSignature())
+
+    def getCompatibleTypes(self, type_list):
+        ret = []
+        sign = self.mLogic.getSignature()
+        for type in type_list:
+            if self.sTypeMap[type].getSignature() == sign:
+                ret.append(type)
+        return ret
 
     def changeType(self, type):
+        if type == self.mType:
+            return
+        assert self.canChangeType(type)
         self.mType = type
         self.mLogic = self.sTypeMap[self.mType]
 

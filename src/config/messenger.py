@@ -44,7 +44,7 @@ sMessagesV = {
 
     "markup.path.type.vesicula": ("везикула", 0),
     "markup.path.type.v-seg":   ("сегмент везикулы", 0),
-    "markup.path.type.v-joint": ("двойная стенка", 0),
+    "markup.path.type.barrier": ("линия помех", 0),
     "markup.path.type.blot": ("клякса", 0),
     "markup.path.type.dirt": ("грязь", 0),
 

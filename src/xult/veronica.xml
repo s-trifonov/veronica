@@ -142,7 +142,7 @@
                                                 command="!img-entry-markup-type">
                                                 <item value="vesicula" text="markup.path.type.vesicula"/>
                                                 <item value="v-seg" text="markup.path.type.v-seg"/>
-                                                <item value="v-joint" text="markup.path.type.v-joint"/>
+                                                <item value="barrier" text="markup.path.type.barrier"/>
                                                 <item value="blot" text="markup.path.type.blot"/>
                                                 <item value="dirt" text="markup.path.type.dirt"/>
                                             </combo-box>

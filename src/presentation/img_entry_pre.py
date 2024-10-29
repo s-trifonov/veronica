@@ -139,8 +139,31 @@ class ImageEntryPresentation:
         self.mTopPre.getEnv().disableAction("img-entry-path-delete",
             cur_path is None)
         self.mButtonPathCreate.setChecked(new_path is not None)
-        self.mComboPathType.setDisabled(new_path is None or
-            not new_path.canChangeType())
+
+        can_change_type = cur_path is None and new_path is None
+        enable_all_types = True
+        if new_path is not None:
+            can_change_type = new_path.canChangeType()
+            if not can_change_type:
+                compatible_types = new_path.getCompatibleTypes(
+                    self.mTopPre.getMarkupTypeList())
+                if len(compatible_types) > 1:
+                    self.mComboPathType.setEnabledItems(
+                        compatible_types, new_path.getType())
+                    can_change_type = True
+                    enable_all_types = False
+        elif cur_path is not None:
+            compatible_types = cur_path.getCompatibleTypes(
+                self.mTopPre.getMarkupTypeList())
+            if len(compatible_types) > 1:
+                self.mComboPathType.setEnabledItems(
+                    compatible_types, cur_path.getType())
+                can_change_type = True
+                enable_all_types = False
+        if enable_all_types:
+            self.mComboPathType.makeAllEnabled()
+        self.mComboPathType.setDisabled(not can_change_type)
+
         self.mTableView.setDisabled(new_path is not None)
 
         self.mTopPre.getEnv().disableAction("img-entry-markup-done",
@@ -355,9 +378,16 @@ class ImageEntryPresentation:
 
         if act.isAction("markup-type"):
             new_path = self.mMarkupPathCtrl.getNewPath()
-            if (new_path is not None and new_path.canChangeType()):
-                self.mMarkupPathCtrl.subScenario().changePathType(
-                    self.mComboPathType.getValue())
+            new_type = self.mComboPathType.getValue()
+            if (new_path is not None and new_path.canChangeType(new_type)):
+                self.mMarkupPathCtrl.subScenario().changePathType(new_type)
                 self.mTopPre.getEnv().needsUpdate()
+            else:
+                cur_path = self.mMarkupPathCtrl.getCurPath()
+                if (cur_path and cur_path.getType() != new_type and
+                        cur_path.canChangeType(new_type)):
+                    cur_path.changeType(new_type)
+                    self.pathChanged(cur_path,
+                        self.mMarkupPathCtrl.getCurPathIdx())
             act.done()
             return

@@ -232,7 +232,7 @@ class NewPathSubController(MouseScenario_NewPath):
         return "new-path"
 
     def changePathType(self, vtype):
-        if self.getPath().canChangeType():
+        if self.getPath().canChangeType(vtype):
             self.getPath().changeType(vtype)
             self.onPathChange()
 

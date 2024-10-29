@@ -29,6 +29,6 @@ class Config:
 
     VIS_DELTA = 5
     MIN_DIST = 20
-    MIN_LOC = .05
-    MAX_PATH_POINTS = 10
+    MIN_DIAMETER = 50
+    MAX_PATH_POINTS = 15
     SPLINE_VIS_SEG = 20
