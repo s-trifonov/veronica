@@ -179,4 +179,7 @@ QLabel[sclass="rep-err"] {
     font-size: 21px;
 }
 
+QDial[id="vpatch-dial"]{
+    geometry: rect(30 30 15 20);
+}
 '''

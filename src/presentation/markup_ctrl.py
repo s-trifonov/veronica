@@ -1,15 +1,15 @@
 from config.gr_support import GraphicsSupport
 from config.ver_cfg import Config
 import tools.geom as geom
-from model.markup_path import MarkupPath
+from model.markup_path import MarkupPathCtrl
 from .scenario_mouse import MouseScenario_NewPath, MouseScenario_Generic
 
 #=================================
 class _PathHandler:
     def __init__(self, idx, type, points):
         self.mIdx = idx
-        self.mPath = MarkupPath(type, points)
-        self.mPoly = self.mPath.drawPoly()
+        self.mPathCtrl = MarkupPathCtrl(type, points)
+        self.mPoly = self.mPathCtrl.drawPoly()
         self.mGrItem = None
 
     def reserveGrItem(self, view_port):
@@ -26,17 +26,17 @@ class _PathHandler:
             self.mGrItem.hide()
             return
         GraphicsSupport.readyPolygon(self.mGrItem, view_poly,
-            self.mPath.getType(), self.mPath.isClosed(), as_hot)
+            self.mPathCtrl.getType(), self.mPathCtrl.isClosed(), as_hot)
         self.mGrItem.show()
 
     def getIdx(self):
         return self.mIdx
 
-    def getPath(self):
-        return self.mPath
+    def getPathCtrl(self):
+        return self.mPathCtrl
 
     def distToPoint(self, pp):
-        return geom.distToPoly(pp, self.mPoly, self.mPath.isClosed())
+        return geom.distToPoly(pp, self.mPoly, self.mPathCtrl.isClosed())
 
 #=================================
 class MarkupPathController(MouseScenario_Generic):
@@ -57,6 +57,9 @@ class MarkupPathController(MouseScenario_Generic):
     def getPathCount(self):
         return len(self.mPathList)
 
+    def getPathSeq(self):
+        return [path_h.getPathCtrl().getInfo() for path_h in self.mPathList]
+
     def _getCurPathH(self):
         if (not self.mIsActive or self.mNewPathCtrl is not None):
             return None
@@ -72,19 +75,19 @@ class MarkupPathController(MouseScenario_Generic):
         path_h = self._getCurPathH()
         if path_h is None:
             return None
-        return path_h.getPath()
+        return path_h.getPathCtrl()
 
     def getNewPath(self):
         if not self.mIsActive or self.mNewPathCtrl is None:
             return None
-        return self.mNewPathCtrl.getPath()
+        return self.mNewPathCtrl.getPathCtrl()
 
     def startNewPath(self, vtype):
         assert self.mIsActive
         if self.mNewPathCtrl is not None:
             self.mNewPathCtrl.deactivate()
         self.mNewPathCtrl = NewPathSubController(
-            self.mMasterPre, self.getViewPort(), MarkupPath(vtype))
+            self.mMasterPre, self.getViewPort(), MarkupPathCtrl(vtype))
         self._curGrPoints()
 
     def clearNewPath(self):
@@ -121,7 +124,7 @@ class MarkupPathController(MouseScenario_Generic):
         if self.mCurPathH is None or self.mNewPathCtrl is not None:
             self.getViewPort()._clearPoints()
             return
-        cur_path = self.mCurPathH.getPath()
+        cur_path = self.mCurPathH.getPathCtrl()
         self.getViewPort()._setPoints(
             cur_path.getPoints(), cur_path.getType())
 
@@ -201,7 +204,7 @@ class MarkupPathController(MouseScenario_Generic):
     def onPathChange(self):
         assert self.mCurPathH is not None
         self.mMasterPre.pathChanged(
-            self.mCurPathH.getPath(), self.mCurPathH.getIdx())
+            self.mCurPathH.getPathCtrl(), self.mCurPathH.getIdx())
 
     def viewPathPoly(self, view_poly):
         if self.mCurPathH is not None:
@@ -217,7 +220,11 @@ class MarkupPathController(MouseScenario_Generic):
             self.mMarkupHidden = False
             self.getViewPort().showMarkup(True)
 
-    def mouseBlocked(self):
+    def mouseBlocked(self, event = None):
+        if (event is not None and not self.buttonIsLeft(event)
+                and self.shiftMode(event)):
+            self.getViewPort().makePatch(self.mapPos(event))
+            return True
         return self.mMarkupHidden
 
 #=================================
@@ -232,8 +239,8 @@ class NewPathSubController(MouseScenario_NewPath):
         return "new-path"
 
     def changePathType(self, vtype):
-        if self.getPath().canChangeType(vtype):
-            self.getPath().changeType(vtype)
+        if self.getPathCtrl().canChangeType(vtype):
+            self.getPathCtrl().changeType(vtype)
             self.onPathChange()
 
     def onActivate(self):
@@ -245,20 +252,20 @@ class NewPathSubController(MouseScenario_NewPath):
         self.mPolyItem = None
 
     def onPathChange(self):
-        self.getViewPort()._setPoints(self.getPath().getPoints(),
-            self.getPath().getType())
-        if self.getPath().isComplete():
+        ptype, points = self.getPathCtrl().getInfo()
+        self.getViewPort()._setPoints(points, ptype)
+        if self.getPathCtrl().isComplete():
             self.mMasterPre.newPathCompleted(self)
         else:
-            self._viewPoly(self.getPath().drawPoly())
+            self._viewPoly(self.getPathCtrl().drawPoly())
 
     def _viewPoly(self, view_poly):
         if view_poly in (None, True):
             self.mPolyItem.hide()
         else:
             GraphicsSupport.readyPolygon(
-                self.mPolyItem, view_poly, self.getPath().getType(),
-                self.getPath().isClosed(), is_current=True)
+                self.mPolyItem, view_poly, self.getPathCtrl().getType(),
+                self.getPathCtrl().isClosed(), is_current=True)
             self.mPolyItem.show()
 
     def viewPoly(self, view_poly):

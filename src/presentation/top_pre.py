@@ -11,6 +11,7 @@ from h2tools.img_pool import ImagePool
 from .dir_pre import DirImagesPresentation
 from .img_entry_pre import ImageEntryPresentation
 from .image_pre import ImagePresentation
+from .vpatch_pre import VPatch_Presentation
 from presentation.preferences import Preferences_Dialog
 #============================
 class TopPresentation:
@@ -40,14 +41,9 @@ class TopPresentation:
         self.mEnv.getUICtrl().getTopWidget().setListeners(
             self.listenKey, self.doExit)
 
-        self.mMarkupTypeList = ["vesicula", "v-seg", "barrier", "blot", "dirt"]
-
-        self.mMarkupTypeNames = {
-            key: msg("markup.path.type." + key)
-            for key in self.mMarkupTypeList
-        }
-
         self.mCurImage = None
+
+        self.mVPatchPre = VPatch_Presentation(self)
 
     def start(self):
         self.mEnv.start()
@@ -66,6 +62,9 @@ class TopPresentation:
 
     def getImagePre(self):
         return self.mImagePre
+
+    def getVPatchPre(self):
+        return self.mVPatchPre
 
     def listenKey(self, evt):
         command = KeyboardSupport.processKeyEvent(evt)
@@ -100,7 +99,7 @@ class TopPresentation:
 
     def userAction(self, act):
         for key, ctrl in (("dir-", self.mDirPre), ("img-entry-", self.mImgEntryPre),
-                ("img-", self.mImagePre)):
+                ("img-", self.mImagePre), ("vpatch-", self.mVPatchPre)):
             if act.isGroup(key):
                 ctrl.userAction(act)
                 return
@@ -117,7 +116,7 @@ class TopPresentation:
             act.done()
             return
         if act.isAction("all-save"):
-            self.mP_Status.saveAll()
+            # Nothing to do
             act.done()
             return
         if act.isAction("relax"):
@@ -127,6 +126,10 @@ class TopPresentation:
             self.mEnv.needsUpdate()
             act.done()
             return
+        if act.isAction("veronica-raise"):
+            self.getEnv().raiseMainOnTop()
+            act.done()
+            return
 
     def needsUpdate(self, feature=None, check_guard=True):
         if check_guard:
@@ -134,6 +137,10 @@ class TopPresentation:
         self.mNeedsUpdate = True
         if feature:
             self.mFeaturesToUpdate.add(feature)
+
+    def forceUpdate(self):
+        self.needsUpdate(check_guard=False)
+        self.getEnv().postAction("relax")
 
     def checkUpdate(self):
         if self.mNeedsUpdate:
@@ -147,6 +154,7 @@ class TopPresentation:
         self.mDirPre.update()
         self.mImagePre.update()
         self.mImgEntryPre.update()
+        self.mVPatchPre.update()
         self.mEnv.flushAlerts()
 
     def getImagePixmapHandler(self, image_h):
@@ -173,6 +181,7 @@ class TopPresentation:
             return True
         self.mEnv.getUICtrl().checkPersistentProperties(self.mEnv)
         self.mExitReady = True
+        self.mVPatchPre.exit()
         return True
 
     def getCurZoom(self):
@@ -201,12 +210,6 @@ class TopPresentation:
 
     def blockEntry(self, value):
         self.mDirPre.setDisabled(value)
-
-    def getMarkupTypeList(self):
-        return self.mMarkupTypeList
-
-    def getMarkupTypeName(self, name):
-        return self.mMarkupTypeNames.get(name, "???")
 
     def getCurRound(self):
         return self.mDirPre.getCurRound()

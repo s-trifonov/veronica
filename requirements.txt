@@ -26,4 +26,6 @@ urllib3>=1.26.2
 pymongo
 regex
 cachetools
+jax
+
 

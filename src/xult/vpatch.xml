@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<main title="vpatch.sup.title" id="vpatch.sup" screen-x="200" screen-y="200" icon="veronica.png"
+        width="600"  height="400" persist="screen-region">
+    <menu-bar>
+        <menu  title="menu.file">
+            <menu-action command="all-save" text="menu.save.all" />
+            <menu-action text="menu.prefs" command="menu-preferences"/>
+            <menu-action text="menu.exit" command="menu-exit" />
+        </menu>
+        <hbox placement="corner-top-right">
+            <tool-button command="veronica-raise"
+                image="veronica.png" img-size="25 25"
+                tooltip="tip.veronica.raise"/>
+        </hbox>
+   </menu-bar>
+    <grid placement="central">
+        <splitter orient="horizontal" persist="split-sizes">
+                <hbox>
+                    <vbox align="bottom">
+                        <push-button text="vpatch.angle.recalc" command="vpatch-angle-recalc"/>
+                        <dial id="vpatch-dial" max="359" command="!vpatch-dial"/>
+                        <label id="vpatch-dial-label"/>
+                    </vbox>
+                    <graphics-view id="vpatch-image"/>
+                </hbox>
+                <plain-text-edit id="vpatch-notes"/>
+        </splitter>
+    </grid>
+</main>

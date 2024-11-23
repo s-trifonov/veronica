@@ -1,6 +1,7 @@
 import abc
 #from config.messenger import msg
 from config.ver_cfg import Config
+from .v_types import VType
 
 import tools.geom as geom
 #=================================
@@ -174,20 +175,7 @@ class SplinePathLogic(PathLogic):
     def drawPoly(self, path_points):
         if len(path_points) < 2:
             return None
-        ret = []
-        if self.mClosed:
-            assert len(path_points) % 3 == 0
-        else:
-            assert len(path_points) % 3 == 1
-        for idx in range(0, len(path_points), 3):
-            pp = path_points[idx:idx+4]
-            if len(pp) == 1:
-                break
-            elif len(pp)< 4:
-                pp.append(path_points[0])
-            ret += geom.splinePoints(pp)
-        del ret[-1]
-        return ret
+        return geom.splineToPoly(path_points, self.mClosed)
 
     SPLINE_C = .5 / .75
 
@@ -325,17 +313,22 @@ class SplinePathLogic(PathLogic):
         return ret
 
 #=================================
-class MarkupPath:
+class MarkupPathCtrl:
+    _sPMap = {
+        "spline": SplinePathLogic,
+        "poly": PolyPathLogic,
+        "line": LinePathLogic}
 
-    sTypeMap = {
-        "vesicula": SplinePathLogic(True),
-        "v-seg": SplinePathLogic(False),
-        "barrier": SplinePathLogic(False),
-        "blot": SplinePathLogic(True),
-        "dirt": PolyPathLogic(True)
-    }
+    sTypeMap = None
+    @classmethod
+    def __checkTypeMap(cls):
+        if cls.sTypeMap is None:
+            cls.sTypeMap = {
+                tp.getType(): cls._sPMap[tp.getGeomType()](tp.isClosed())
+                for tp in VType.iterTypes()}
 
     def __init__(self, type, points = None):
+        self.__checkTypeMap()
         self.mType = type
         self.mPoints = points if points is not None else []
         self.mLogic = self.sTypeMap[self.mType]
@@ -345,6 +338,9 @@ class MarkupPath:
 
     def getType(self):
         return self.mType
+
+    def getInfo(self):
+        return self.mType, self.mPoints
 
     def isComplete(self):
         return len(self.mPoints) >= self.mLogic.getMinPointCount()
@@ -358,10 +354,10 @@ class MarkupPath:
         return (type is not None and self.mLogic.getSignature() ==
             self.sTypeMap[type].getSignature())
 
-    def getCompatibleTypes(self, type_list):
+    def getCompatibleTypes(self):
         ret = []
         sign = self.mLogic.getSignature()
-        for type in type_list:
+        for type in VType.getList():
             if self.sTypeMap[type].getSignature() == sign:
                 ret.append(type)
         return ret

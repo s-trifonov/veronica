@@ -247,7 +247,7 @@ class MouseScenario_Generic(MouseEventListener):
 
     def mousePressEvent(self, event):
         self.onClick(event)
-        if self.mouseBlocked():
+        if self.mouseBlocked(event):
             self.setCursor(QtCore.Qt.WhatsThisCursor)
             return
         if self.subScenario() is not None:
@@ -265,9 +265,10 @@ class MouseScenario_Generic(MouseEventListener):
                 self.setCurPath(loc_idx)
                 self.setCursor(QtCore.Qt.ArrowCursor)
                 return
-        elif self.mCurModInfo is not None:
-            self.setCurMod(None)
-            self.onTouchCurPath()
+        else:
+            if self.mCurModInfo is not None:
+                self.setCurMod(None)
+                self.onTouchCurPath()
         self._drawCurMod(pos)
 
     def mouseReleaseEvent(self, event):

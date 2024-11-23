@@ -112,6 +112,10 @@ class UI_XultActivator:
             return self._activate_checkbox(node, parent)
         if node.tag == "spin-box":
             return self._activate_spinbox(node, parent)
+        if node.tag == "slider":
+            return self._activate_slider(node, parent)
+        if node.tag == "dial":
+            return self._activate_dial(node, parent)
         if node.tag == "line-edit":
             return self._activate_lineedit(node, parent)
         if node.tag == "label":
@@ -426,6 +430,42 @@ class UI_XultActivator:
     def _activate_spinbox(self, node, parent):
         assert nodeIsPure(node)
         ctrl = QtWidgets.QSpinBox(parent)
+        self._setupCtrl_Id(ctrl, node)
+        if node.get("value"):
+            ctrl.setValue(int(node.get("value")))
+        if node.get("min"):
+            ctrl.setMinimum(int(node.get("min")))
+        if node.get("max"):
+            ctrl.setMaximum(int(node.get("max")))
+        self._setupCtrl_Icon(ctrl, node)
+        self._setupCtrl_ToolTip(ctrl, node)
+        self._setupCtrl_Options(ctrl, node)
+        if node.get("checked") is not None:
+            ctrl.setChecked(qt_conv.convBoolean(node.get("checked")))
+        self._setupCtrl_Command(ctrl, node, kind = "valueChanged")
+        return ctrl
+
+    def _activate_slider(self, node, parent):
+        assert nodeIsPure(node)
+        ctrl = QtWidgets.QSlider(
+            QtCore.Qt.Horizontal if node.get("orient") == "horizontal"
+            else QtCore.Qt.Vertical,
+            parent)
+        self._setupCtrl_Id(ctrl, node)
+        if node.get("value"):
+            ctrl.setValue(int(node.get("value")))
+        if node.get("min"):
+            ctrl.setMinimum(int(node.get("min")))
+        if node.get("max"):
+            ctrl.setMaximum(int(node.get("max")))
+        self._setupCtrl_ToolTip(ctrl, node)
+        self._setupCtrl_Options(ctrl, node)
+        self._setupCtrl_Command(ctrl, node, kind = "valueChanged")
+        return ctrl
+
+    def _activate_dial(self, node, parent):
+        assert nodeIsPure(node)
+        ctrl = QtWidgets.QDial(parent)
         self._setupCtrl_Id(ctrl, node)
         if node.get("value"):
             ctrl.setValue(int(node.get("value")))

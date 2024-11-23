@@ -1,5 +1,6 @@
 from h2tools.tools_qt import newQItem
 from config.messenger import msg
+from model.v_types import VType
 from .markup_ctrl import MarkupPathController
 
 #=================================
@@ -90,7 +91,7 @@ class ImageEntryPresentation:
             for type, points in self._prepareMarkupInfo():
                 self.mTableView.model().appendRow([
                     newQItem(str(_no), align = "right"),
-                    newQItem(self.mTopPre.getMarkupTypeName(type)),
+                    newQItem(VType.getTypeDescr(type).getName()),
                     newQItem(str(len(points)))])
                 _no += 1
         self.mInUpdate = False
@@ -145,16 +146,14 @@ class ImageEntryPresentation:
         if new_path is not None:
             can_change_type = new_path.canChangeType()
             if not can_change_type:
-                compatible_types = new_path.getCompatibleTypes(
-                    self.mTopPre.getMarkupTypeList())
+                compatible_types = new_path.getCompatibleTypes()
                 if len(compatible_types) > 1:
                     self.mComboPathType.setEnabledItems(
                         compatible_types, new_path.getType())
                     can_change_type = True
                     enable_all_types = False
         elif cur_path is not None:
-            compatible_types = cur_path.getCompatibleTypes(
-                self.mTopPre.getMarkupTypeList())
+            compatible_types = cur_path.getCompatibleTypes()
             if len(compatible_types) > 1:
                 self.mComboPathType.setEnabledItems(
                     compatible_types, cur_path.getType())
@@ -259,8 +258,7 @@ class ImageEntryPresentation:
         self._resetImage()
 
     def needsUpdate(self):
-        self.mTopPre.needsUpdate(check_guard=False)
-        self.mTopPre.getEnv().postAction("relax")
+        self.mTopPre.forceUpdate()
 
     #=====================
     def _resetImage(self, forward_loc = None):

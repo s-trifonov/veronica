@@ -1,7 +1,6 @@
 #import sys
-
+#=================================
 class Config:
-    #=================================
     IMG_CACHE_SIZE = 10
 
     DEFAULT_IMAGE_HEIGHT = 1000
@@ -32,3 +31,7 @@ class Config:
     MIN_DIAMETER = 50
     MAX_PATH_POINTS = 15
     SPLINE_VIS_SEG = 20
+
+    PATCH_HALF_SIZE = 64
+    PATCH_SIZE = PATCH_HALF_SIZE * 2
+    PATCH_MIN_DIST = 4

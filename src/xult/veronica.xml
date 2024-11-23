@@ -71,6 +71,11 @@
                 <item value="25" label="25%"/>
                 <item value="10" label="10%"/>
             </combo-box>
+            <separator orient="vertical"/>
+                <spacer width="10" h-policy="minimum"/>
+                <tool-button command="vpatch-sup-raise"
+                    image="veronica.png" img-size="25 25"
+                    tooltip="tip.vpatch.sup.raise"/>
         </hbox>
     </menu-bar>
     <grid placement="central">

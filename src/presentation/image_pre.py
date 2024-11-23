@@ -2,6 +2,8 @@ from PyQt5 import QtCore, QtGui,  QtWidgets
 #from h2tools.runtime import RT_Guard
 from config.gr_support import GraphicsSupport
 from config.ver_cfg import Config
+from model.patch_info import PatchInfo
+import tools.geom as geom
 #=================================
 class ImagePresentation:
     def __init__(self, top_pre):
@@ -46,6 +48,14 @@ class ImagePresentation:
         self.mPointItems = []
         self.mScene.addItem(self.mPointGroup)
 
+        self.mPatchGroup = QtWidgets.QGraphicsItemGroup()
+        self.mPatchGroup.hide()
+        self.mScene.addItem(self.mPatchGroup)
+
+        self.mDebugGroup = QtWidgets.QGraphicsItemGroup()
+        self.mDebugGroup.hide()
+        self.mScene.addItem(self.mDebugGroup)
+
         self.mMarkupCtrl = None
 
         self.mCurImageH  = None
@@ -53,6 +63,7 @@ class ImagePresentation:
         self.mCurOpacity = None
         self.mStarted    = False
         self.mCurPixmapH = None
+        self.mCurPatch   = None
         self.checkZoom()
         self.checkOpacity()
 
@@ -63,6 +74,8 @@ class ImagePresentation:
         if self.mCurPixmapH is pixmap_h:
             return
         self.mCurPixmapH = pixmap_h
+        self.mCurPatch = None
+        self.mPatchGroup.hide()
         self.runMarkupCtrl(None)
         if self.mCurPixmapH in (None, False):
             self.mImgItem.hide()
@@ -95,6 +108,9 @@ class ImagePresentation:
     def getEnv(self):
         return self.mTopPre.getEnv()
 
+    def getCurPatch(self):
+        return self.mCurPatch
+
     #==========================
     def setCursor(self, cursor):
         if cursor is None:
@@ -107,21 +123,9 @@ class ImagePresentation:
         if zoom == self.mCurScale:
             return
         self.mCurScale = zoom
-
-#        ??
-#        pos0 = (self.mGrView.mapToScene(screen_pos)
-#            if screen_pos is not None else None)
-
         self.mGrView.setTransform(QtGui.QTransform())
         dd = self.mCurScale / 100.
         self.mGrView.scale(dd, dd)
-
-#        if screen_pos is not None:
-#            pos1 = self.mGrView.mapToScene(screen_pos)
-#            dx, dy = pos1.x() - pos0.x(), pos1.y() - pos0.y()
-#            print(f"pos0={pos0}, pos1={pos1}, d={dx}, {dy}")
-#            self.mGrView.translate(100*dx, 100*dy)
-
 
     def checkOpacity(self):
         opacity = self.mTopPre.getCurOpacity()
@@ -165,6 +169,10 @@ class ImagePresentation:
         else:
             self.mPolygonGroup.hide()
             self.mPointGroup.hide()
+        if value and self.mCurPatch is not None:
+            self.mPatchGroup.show()
+        else:
+            self.mPatchGroup.hide()
 
     def getMarkupCtrl(self):
         return self.mMarkupCtrl
@@ -210,6 +218,33 @@ class ImagePresentation:
         if self.mPolygonItems[self.mPolygonUsageCount - 1] is poly_item:
             self.mPolygonUsageCount -= 1
         poly_item.hide()
+
+    #==========================
+    def makePatch(self, point):
+        assert self.mCurImageH is not None
+        if not PatchInfo.checkIfCenterCorrect(
+                self.mCurPixmapH.getPixmap().width(),
+                self.mCurPixmapH.getPixmap().height(), point):
+            return
+
+        self.mCurPatch = PatchInfo(self.mCurImageH, point,
+            self.mTopPre.getVPatchPre().getCurAngle())
+        self.mCurPatch.setupImage(
+            GraphicsSupport.makePatchPixmap(
+                self.mCurPixmapH.getPixmap(),
+                self.mCurPatch.getCropper()))
+        self.mCurPatch.setupMarkup(self.mMarkupCtrl.getPathSeq())
+
+        GraphicsSupport.readyPatchPoly(
+            self.mPatchGroup, self.mCurPatch.getPoly())
+        if geom.sDEBUG_SEGMENTS is not None:
+            GraphicsSupport.readyDebugSegments(
+                self.mDebugGroup, geom.sDEBUG_SEGMENTS)
+        else:
+            self.mDebugGroup.hide()
+
+        self.mTopPre.forceUpdate()
+        self.mTopPre.getVPatchPre().raiseOnTop()
 
     #==========================
     #==========================

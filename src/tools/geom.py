@@ -4,8 +4,15 @@ from config.ver_cfg import Config
 
 #=================================
 def dist(p0, p1):
-    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    return length(p1[0] - p0[0], p1[1] - p0[1])
+
+#=================================
+def length(dx, dy):
     return math.sqrt(dx*dx + dy*dy)
+
+#=================================
+def norm(dx, dy):
+    return dx*dx + dy*dy
 
 #=================================
 def linePoint(p0, p1, c):
@@ -21,14 +28,19 @@ def smult(p0, p1):
     return (p0[0] * p1[0]) + (p0[1] * p1[1])
 
 #=================================
+def xmult(p0, p1):
+    return (p0[0] * p1[1]) - (p0[1] * p1[0])
+
+#=================================
 def locateDistToLine(pp, pl1, pl2):
-    m1 = smult(delta(pl1, pp), delta(pl1, pl2))
+    dp = delta(pl1, pl2)
+    m1 = smult(delta(pl1, pp), dp)
     if m1 <= Config.TOO_SMALL:
         return dist(pp, pl1), 0
 
-    m2 = smult(delta(pl2, pp), delta(pl2, pl1))
+    m2 = - smult(delta(pl2, pp), dp)
     if m2 <= Config.TOO_SMALL:
-        return dist(pp, pl1), 1
+        return dist(pp, pl2), 1
 
     c = float(m1) / (m1 + m2)
     return dist(pp, linePoint(pl1, pl2, c)), c
@@ -91,3 +103,57 @@ def splinePoints(points):
     count = round((ll + Config.SPLINE_VIS_SEG)/Config.SPLINE_VIS_SEG)
     dt = 1./count
     return [splinePoint(points, i * dt) for i in range(0, count + 1)]
+
+#=================================
+def splineToPoly(path_points, closed):
+    assert len(path_points) > 2
+    ret = []
+    if closed:
+        assert len(path_points) % 3 == 0
+    else:
+        assert len(path_points) % 3 == 1
+    for idx in range(0, len(path_points), 3):
+        pp = path_points[idx:idx+4]
+        if len(pp) == 1:
+            break
+        elif len(pp)< 4:
+            pp.append(path_points[0])
+        ret += splinePoints(pp)
+    if closed:
+        del ret[-1]
+    return ret
+
+#=================================
+def splitOrtho(base_vec, vec):
+    l0 = length(*base_vec)
+    norm_base = [base_vec[0]/l0, base_vec[1]/l0]
+    mm = smult(norm_base, vec)
+    vec1 = [norm_base[0] * mm, norm_base[1] * mm]
+    return vec1, delta(vec1, vec)
+
+#=================================
+def lineFormula(p0, p1):
+    vec = delta(p0, p1)
+    l0 = length(vec)
+    if l0 < Config.MIN_DIST:
+        return None
+    normal = [vec[1]/l0, -vec[0]/l0]
+    if normal[0] < 0:
+        normal = [-v for v in normal]
+    return normal[0], normal[1], -smult(normal, p0)
+
+#=================================
+def mapPoint(mm, pp):
+    return [
+        round(mm[0][0] * pp[0] + mm[0][1] * pp[1] + mm[0][2]),
+        round(mm[1][0] * pp[0] + mm[1][1] * pp[1] + mm[1][2])]
+
+#=================================
+sDEBUG_SEGMENTS = None
+def _clearDebug():
+    global sDEBUG_SEGMENTS
+    sDEBUG_SEGMENTS = None
+
+def setDebugSegments(segments):
+    global sDEBUG_SEGMENTS
+    sDEBUG_SEGMENTS = [points[:] for points in segments]

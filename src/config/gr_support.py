@@ -83,6 +83,7 @@ class GraphicsSupport:
             style = QtCore.Qt.NoPen),
         "_current": QPen(QtCore.Qt.red, 3),
         "_bound": QPen(QtCore.Qt.yellow, 3),
+        "_active_bound": QPen(QtCore.Qt.yellow, 5, QtCore.Qt.DashLine),
     }
 
     sNoBrush = QBrush(QtCore.Qt.NoBrush)
@@ -133,5 +134,76 @@ class GraphicsSupport:
         poly_item.setPen(cls.stdPen("_current" if is_current else vtype))
         poly_item.setBrush(cls.stdBrush(vtype
             if is_closed else "_transparent"))
+
+    @classmethod
+    def readyPatchMarkup(cls, markup_group, markup_points):
+        if markup_points is None:
+            return False
+        cls.clearGroup(markup_group)
+        p1, p2 = markup_points
+        line = QtWidgets.QGraphicsLineItem(p1[0], p1[1], p2[0], p2[1])
+        line.setPen(cls.stdPen("_current"))
+        markup_group.addToGroup(line)
+        return True
+
+    @classmethod
+    def readyPatchPoly(cls, patch_group, points):
+        cls.clearGroup(patch_group)
+        pp_seq = [QtCore.QPointF(x, y) for x, y in points]
+        paint_path = QtGui.QPainterPath()
+        paint_path.addPolygon(QtGui.QPolygonF(pp_seq[1:]))
+        patch_item = QtWidgets.QGraphicsPathItem()
+        patch_item.setPath(paint_path)
+        patch_item.setPen(cls.stdPen("_bound"))
+        patch_item.setBrush(cls.stdBrush("_transparent"))
+        patch_group.addToGroup(patch_item)
+        p_line = QtWidgets.QGraphicsLineItem(
+            points[0][0], points[0][1],
+            points[1][0], points[1][1])
+        p_line.setPen(cls.stdPen("_active_bound"))
+        patch_group.addToGroup(p_line)
+        patch_group.show()
+
+    @classmethod
+    def readyDebugSegments(cls, debug_group, segments):
+        cls.clearGroup(debug_group)
+        for points in segments:
+            pp_seq = [QtCore.QPointF(x, y) for x, y in points]
+            paint_path = QtGui.QPainterPath()
+            paint_path.addPolygon(QtGui.QPolygonF(pp_seq))
+            p_item = QtWidgets.QGraphicsPathItem()
+            p_item.setPath(paint_path)
+            p_item.setPen(cls.stdPen("_current"))
+            p_item.setBrush(cls.stdBrush("_transparent"))
+            debug_group.addToGroup(p_item)
+        debug_group.show()
+
+    @classmethod
+    def clearGroup(cls, group):
+        for it in group.childItems():
+            group.removeFromGroup(it)
+
+    @classmethod
+    def makePatchPixmap(cls, pixmap, cropper):
+        x0, y0 = cropper.mapToGlobal([0, 0])
+        if cropper.getAngle() == 0:
+            return pixmap.copy(x0, y0,
+                cropper.getSize(), cropper.getSize())
+        p_poly = cropper.getPoly(False)
+        x1 = min(pp[0] for pp in p_poly)
+        x2 = max(pp[0] for pp in p_poly)
+        y1 = min(pp[1] for pp in p_poly)
+        y2 = max(pp[1] for pp in p_poly)
+        local_pixmap = pixmap.copy(
+            x1 - 1, y1 - 1, x2 - x1 + 2, y2 - y1 + 2)
+
+        mm = QtGui.QTransform();
+        mm.rotate(-cropper.getAngle());
+        rotated_pixmap = local_pixmap.transformed(mm,
+            QtCore.Qt.SmoothTransformation);
+        return rotated_pixmap.copy(
+            round((rotated_pixmap.width() - cropper.getSize())/2),
+            round((rotated_pixmap.height() - cropper.getSize())/2),
+            cropper.getSize(), cropper.getSize())
 
 #=================================
