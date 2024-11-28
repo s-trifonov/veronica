@@ -202,8 +202,8 @@ class GraphicsSupport:
         rotated_pixmap = local_pixmap.transformed(mm,
             QtCore.Qt.SmoothTransformation);
         return rotated_pixmap.copy(
-            round((rotated_pixmap.width() - cropper.getSize())/2),
             round((rotated_pixmap.height() - cropper.getSize())/2),
+            round((rotated_pixmap.width() - cropper.getSize())/2),
             cropper.getSize(), cropper.getSize())
 
 #=================================

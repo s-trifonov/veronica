@@ -93,7 +93,7 @@ if __name__ == "__main__":
         variants = list(glob(os.curdir + "/*.vprj"))
         if len(variants) == 1:
             project_path = variants[0]
-            print(f"Project {profile_path} is selected and used",
+            print(f"Project {project_path} is selected and used",
                 file = sys.stderr)
         elif len(variants) == 0:
             print("No projects (*.vprj) in current directory",
