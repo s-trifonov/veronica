@@ -109,6 +109,8 @@ class Cropper:
         if small_count > 1:
             return None
         ret = [points[0], points[-1]]
+        if geom.length(*geom.delta(*ret)) < Config.PATCH_MIN_DIST:
+            return None
         if (all(self._pointNearBoundary(pp) for pp in ret)):
             return ret
         return None

@@ -36,6 +36,19 @@ class PatchDescr:
     def getMarkupPoints(self):
         return self.mMarkupPoints
 
+    def targetVector(self):
+        ret = [0, 0, 0, 0, 0]
+        if self.mDirtiness > .3:
+            ret[-1] = 3
+            return ret
+        if self.mMarkupPoints is None:
+            return ret
+        ret[-1] = 2 if self.mSelCount > 1 else 1
+        ret[-2] = 1 if self.mMarkupType == "vesicula" else 0
+        formula = geom.lineFormula(*self.mMarkupPoints)
+        ret[:3] = formula
+        return ret
+
     def addDirtiness(self, dirtiness):
         self.mDirtiness += dirtiness
 
@@ -66,6 +79,7 @@ class PatchDescr:
 
     def toJSon(self):
         ret = {
+            "target": self.targetVector(),
             "markup-type": self.mMarkupType,
             "complexity": self.getComplexity(),
             "sel-count": self.mSelCount,
@@ -193,6 +207,7 @@ class PatchHandler:
             if line is None:
                 n_chunks += 1
             else:
+                assert geom.lineFormula(*line) is not None
                 selection.append((tp_descr.getReducedType(), line, ch))
         if n_chunks > 0:
             p_descr.addFeature("chunks")

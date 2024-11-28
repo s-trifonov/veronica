@@ -62,7 +62,9 @@ class TrainPack:
 
     def _makeOne(self):
         x1, y1, x2, y2 = self.mCorrectRegion
-        center = [self.mRH.uniform(x1, x2), self.mRH.uniform(y1, y2)]
+        center = [
+            self.mRH.randint(int(x1), int(x2)),
+            self.mRH.randint(int(y1), int(y2))]
         angle = self.mRH.randint(0, 365)
         patch_h = PatchHandler(self.mImgH, center, angle)
         patch_h.setupMarkup(self.mMarkupSeq)

@@ -134,13 +134,13 @@ def splitOrtho(base_vec, vec):
 #=================================
 def lineFormula(p0, p1):
     vec = delta(p0, p1)
-    l0 = length(vec)
-    if l0 < Config.MIN_DIST:
+    l0 = length(*vec)
+    if l0 < Config.PATCH_MIN_DIST:
         return None
     normal = [vec[1]/l0, -vec[0]/l0]
     if normal[0] < 0:
         normal = [-v for v in normal]
-    return normal[0], normal[1], -smult(normal, p0)
+    return [normal[0], normal[1], -smult(normal, p0)]
 
 #=================================
 def mapPoint(mm, pp):

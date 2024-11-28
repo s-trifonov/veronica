@@ -283,6 +283,7 @@ class ImageEntryPresentation:
             self.mImageH.getLongName(), True)
         pack_info = train_pack.getResult()
         annotation_h.setData(pack_info)
+        annotation_h.doSave()
 
         self.mTopPre.getEnv().notifyStatus(
             msg("train.pack.kept", pack_info["total"]))
