@@ -2,7 +2,7 @@ from PyQt5 import QtCore, QtGui,  QtWidgets
 #from h2tools.runtime import RT_Guard
 from config.gr_support import GraphicsSupport
 from config.ver_cfg import Config
-from model.patch_info import PatchInfo
+from model.patch import PatchHandler
 import tools.geom as geom
 #=================================
 class ImagePresentation:
@@ -222,12 +222,12 @@ class ImagePresentation:
     #==========================
     def makePatch(self, point):
         assert self.mCurImageH is not None
-        if not PatchInfo.checkIfCenterCorrect(
+        if not PatchHandler.checkIfCenterCorrect(
                 self.mCurPixmapH.getPixmap().width(),
                 self.mCurPixmapH.getPixmap().height(), point):
             return
 
-        self.mCurPatch = PatchInfo(self.mCurImageH, point,
+        self.mCurPatch = PatchHandler(self.mCurImageH, point,
             self.mTopPre.getVPatchPre().getCurAngle())
         self.mCurPatch.setupImage(
             GraphicsSupport.makePatchPixmap(

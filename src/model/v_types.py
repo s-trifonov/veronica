@@ -2,7 +2,7 @@ from config.messenger import msg
 #=================================
 class VTypeInfo:
     def __init__(self, type, geom_type,
-            dim_kind = "curve", closed = False):
+            dim_kind = "curve", closed = False, reduced = None):
         self.mType = type
         self.mName = msg("markup.path.type." + self.mType)
         assert geom_type in ("spline", "line", "poly")
@@ -10,6 +10,7 @@ class VTypeInfo:
         self.mGeomType = geom_type
         self.mDimKind = dim_kind
         self.mClosed = closed or self.mDimKind == "area"
+        self.mReducedType = reduced if reduced is not None else self.mType
 
     def getType(self):
         return self.mType
@@ -19,6 +20,9 @@ class VTypeInfo:
 
     def getGeomType(self):
         return self.mGeomType
+
+    def getReducedType(self):
+        return self.mReducedType
 
     def isAreaType(self):
         return self.mDimKind == "area"
@@ -30,7 +34,7 @@ class VTypeInfo:
 class VType:
     sDescriptors = [
         VTypeInfo("vesicula", "spline", closed = True),
-        VTypeInfo("v-seg", "spline"),
+        VTypeInfo("v-seg", "spline", reduced = "vesicula"),
         VTypeInfo("barrier", "spline"),
         VTypeInfo("blot", "spline", "area"),
         VTypeInfo("dirt", "poly", "area")]

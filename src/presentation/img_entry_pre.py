@@ -1,6 +1,7 @@
 from h2tools.tools_qt import newQItem
 from config.messenger import msg
 from model.v_types import VType
+from model.train_pack import TrainPack
 from .markup_ctrl import MarkupPathController
 
 #=================================
@@ -270,6 +271,22 @@ class ImageEntryPresentation:
         self.resetState()
         self.needsUpdate()
 
+    def keepTrainPack(self):
+        self.mTopPre.getEnv().notifyStatus(msg("train.pack.work"))
+        pixmap_h = self.mTopPre.getImagePixmapHandler(
+            self.mImageH).getPixmap()
+        train_pack = TrainPack(self.mTopPre.getEnv(),
+            self.mImageH, pixmap_h.height(),
+            pixmap_h.width(), self.mMarkupPathCtrl.getPathSeq())
+        round_h = self.mTopPre.getProject().getRound("lpack")
+        annotation_h = round_h.getAnnotation(
+            self.mImageH.getLongName(), True)
+        pack_info = train_pack.getResult()
+        annotation_h.setData(pack_info)
+
+        self.mTopPre.getEnv().notifyStatus(
+            msg("train.pack.kept", pack_info["total"]))
+
     def userAction(self, act):
         if act.isAction("tab"):
             self.mTopPre.getEnv().needsUpdate()
@@ -348,9 +365,12 @@ class ImageEntryPresentation:
             if self.mLearnData is not None:
                 data = self.mImageH.startAnnotationChange(
                     self.mRounds["learn"], cur_loc = self._curLoc())
-                data["status"] = "ready" if data.get("status") != "ready" else "process"
+                data["status"] = ("ready"
+                    if data.get("status") != "ready" else "process")
                 self.mImageH.finishAnnotationChange()
                 self.mImageH.doSave()
+                if data["status"] == "ready":
+                    self.keepTrainPack()
                 self.mImageH.reset(True)
                 self._resetImage()
                 act.done()

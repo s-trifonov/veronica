@@ -35,6 +35,12 @@ class Cropper:
             point[1] - cls.sMinBoundDist >= 0 and
             point[1] + cls.sMinBoundDist < height)
 
+    @classmethod
+    def fullCorrectRegion(cls, width, height):
+        return (cls.sMinBoundDist, cls.sMinBoundDist,
+            width - 2 * cls.sMinBoundDist,
+            height - 2 * cls.sMinBoundDist)
+
     def getCenter(self):
         return self.mCenter
 
@@ -60,6 +66,12 @@ class Cropper:
 
     def getInfo(self):
         return f"Geometry: {self.mCenter}/{self.mAngle}"
+
+    def toJSon(self):
+        return {
+            "loc-center": list(self.mCenter),
+            "loc-angle": self.mAngle
+        }
 
     def getPoly(self, closed=True):
         points = self.mapPointsToGlobal([

@@ -18,7 +18,8 @@ class AnnotationStorage:
             for it in self.mAgent.find({"_tp": "round"})
         }
 
-        for tp, name in (("info", "info"), ("learn", "learn")):
+        for tp, name in (("info", "info"),
+                ("learn", "learn"), ("lpack", "lpack")):
             if name not in self.mRounds:
                 self.createRound(name, tp)
 

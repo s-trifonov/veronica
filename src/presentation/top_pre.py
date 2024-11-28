@@ -80,7 +80,7 @@ class TopPresentation:
             if not RT_Guard.isFree():
                 return
             command = command[1:]
-        self.mEnv.notifyStatus("")
+        # self.mEnv.notifyStatus("")
         act = UI_Action(command, cmd_descr)
         with RT_Guard():
             self.userAction(act)
