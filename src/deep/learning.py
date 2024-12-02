@@ -4,11 +4,21 @@ from pymongo import MongoClient
 from PIL import Image
 
 from deep.loading import preparePackTrainData
+from deep.lmodel import doLearn
 #=========================================
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--stderr",  default = "",
         help = "Redefine stderr stream")
+    parser.add_argument("-E", "--eportion",
+        type = int, default = 10,
+        help = "Epoch portion (default 10")
+    parser.add_argument("-P", "--portion",
+        type = int, default = 10,
+        help = "Data portion (default 10)")
+    parser.add_argument("-N", "--n_epochs",
+        type = int, default = 50,
+        help = "Epoch count")
     parser.add_argument("project", nargs="?", help="Project")
     run_args = parser.parse_args()
 
@@ -35,8 +45,8 @@ if __name__ == "__main__":
     m_port = project_info.get("mongo-port", 27017)
     m_top_path = project_info.get("mongo-top", "Veronica")
 
-    mongo_agent = MongoClient(m_host, m_port)[m_top_path][
-        project_info["prj-name"]]
+    mongo_client = MongoClient(m_host, m_port)
+    mongo_agent = mongo_client[m_top_path][project_info["prj-name"]]
 
     img_cnt = 0
     train_data = []
@@ -47,6 +57,12 @@ if __name__ == "__main__":
         train_data += preparePackTrainData(img, pack_descr)
         img_cnt += 1
 
+    del mongo_agent
+    mongo_client.close()
+
     print(f"Loaded: {len(train_data)} items for {img_cnt} image(s)")
+
+    result = doLearn(train_data, run_args.n_epochs,
+        run_args.portion, run_args.eportion)
 
 

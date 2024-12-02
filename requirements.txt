@@ -28,4 +28,5 @@ regex
 cachetools
 jax
 dm-haiku
+optax
 

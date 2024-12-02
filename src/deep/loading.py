@@ -23,14 +23,14 @@ def _prepareCroppedImage(fullImage, cropper):
 #=================================
 def preparePatchData(fullImage, cropper, save_file = None):
     image = _prepareCroppedImage(fullImage, cropper)
-    img_input = jnp.asarray(image)
+    img_input = jnp.asarray(image, float)
     if save_file is not None:
         image.save(save_file)
     assert img_input.shape == (128, 128)
     if len(img_input.shape) != 2:
         assert len(img_input.shape) == 3
         img_input = jnp.average(img_input, 2)
-    return img_input
+    return img_input.reshape(128, 128, 1)
 
 #=================================
 #_DEBUG_COUNT = 10
@@ -44,7 +44,7 @@ def preparePatchTrainData(fullImage, patch_descr):
     #        save_file = "_here.tif"
     #        print("Patch:", json.dumps(patch_descr))
     return (preparePatchData(fullImage, cropper, save_file),
-        jnp.array(patch_descr["target"]))
+        jnp.array(patch_descr["target"], float))
 
 #=================================
 def preparePackTrainData(fullImage, pack_descr):
