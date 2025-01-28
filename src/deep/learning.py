@@ -8,6 +8,8 @@ from deep.lmodel import doLearn
 #=========================================
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--mode",  default = "simple",
+        help = "Modes: simple/deep")
     parser.add_argument("-e", "--stderr",  default = "",
         help = "Redefine stderr stream")
     parser.add_argument("-E", "--eportion",
@@ -21,6 +23,8 @@ if __name__ == "__main__":
         help = "Epoch count")
     parser.add_argument("project", nargs="?", help="Project")
     run_args = parser.parse_args()
+
+    assert run_args.mode in ("simple", "deep")
 
     project_path = run_args.project
     if not project_path:
@@ -62,7 +66,14 @@ if __name__ == "__main__":
 
     print(f"Loaded: {len(train_data)} items for {img_cnt} image(s)")
 
-    result = doLearn(train_data, run_args.n_epochs,
-        run_args.portion, run_args.eportion)
+    if run_args.mode == "deep":
+        import jax.numpy as jnp
+        train_data = [(jnp.array(patch_img_data).reshape((128, 128, 1)),
+                jnp.array(patch_descr["target"], float))
+            for patch_descr, patch_img_data in train_data]
 
+        result = doLearn(train_data, run_args.n_epochs,
+            run_args.portion, run_args.eportion)
+    else:
+        assert run_args.mode == "simple"
 

@@ -57,6 +57,7 @@ sMessagesV = {
     "dir.round.learn":  ("Разметка для обучения", 0),
 
     "img.entry.tab.info":  ("Снимок", 0),
+    "img.entry.tab.detect": ("Зырк", 0),
     "img.entry.tab.learn": ("Разметка", 0),
 
     "info.edit.quality.title": ("Качество", 0),
@@ -99,6 +100,8 @@ sMessagesV = {
     "prefs.edit.slist":
         ("Редактировать конфигурацию пакетов поиска и замены", 0),
 
+    "detect.line":                  ("Вдоль линии", 0),
+
     "vpatch.dial.value":            ("%d°", 1),
     "vpatch.no.patch":              ("Мини-блок не задан", 0),
     "vpatch.no.markup":             ("Разметка не представлена", 0),
@@ -106,7 +109,8 @@ sMessagesV = {
     "vpatch.markup.one":            ("Размечено: один сегмент", 0),
     "vpatch.markup.colision":       ("Размечено: %d сегментов", 1),
     "vpatch.markup.error":          ("Ошибка при отработке разметки", 0),
-    "vpatch.angle.recalc":          ("Пересчитать", 0),
+    "vpatch.recalc":                ("Пересчитать", 0),
+    "vpatch.params":                ("Параметры блока:", 0),
 
     "vpatch.sup.title":             ("Вероника: мини-блок", 0),
     "tip.vpatch.sup.raise":         ("Активизировать окно мини-блока", 0),

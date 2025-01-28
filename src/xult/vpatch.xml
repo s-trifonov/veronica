@@ -17,8 +17,10 @@
         <splitter orient="horizontal" persist="split-sizes">
                 <hbox>
                     <vbox align="bottom">
-                        <push-button text="vpatch.angle.recalc" command="vpatch-angle-recalc"/>
-                        <dial id="vpatch-dial" max="359" command="!vpatch-dial"/>
+                        <push-button text="vpatch.recalc" command="vpatch-recalc"/>
+                        <label text="vpatch.params"/>
+                        <line-edit id="vpatch-params" command="!vpatch-check" />
+                        <dial id="vpatch-dial" max="359" command="!vpatch-check"/>
                         <label id="vpatch-dial-label"/>
                     </vbox>
                     <graphics-view id="vpatch-image"/>

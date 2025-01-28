@@ -74,9 +74,6 @@ class MouseScenario_NewPath(MouseEventListener):
         MouseEventListener.__init__(self, view_port)
         self.mPath = the_path
 
-    def _setPath(self, the_path):
-        self.mPath = the_path
-
     def getPath(self):
         return self.mPath
 

@@ -48,6 +48,9 @@ class ImagePresentation:
         self.mPointItems = []
         self.mScene.addItem(self.mPointGroup)
 
+        self.mDetectGroup = QtWidgets.QGraphicsItemGroup()
+        self.mScene.addItem(self.mDetectGroup)
+
         self.mPatchGroup = QtWidgets.QGraphicsItemGroup()
         self.mPatchGroup.hide()
         self.mScene.addItem(self.mPatchGroup)
@@ -86,7 +89,7 @@ class ImagePresentation:
         else:
             self.mNotFoundItem.hide()
             self.mImgItem.setPixmap(self.mCurPixmapH.getPixmap())
-            h, w = self.mCurPixmapH.getSize()
+            w, h = self.mCurPixmapH.getSize()
             self.mImgItem.setPos(0, 0)
             self.mImgItem.setOffset(0, 0)
             self.mScene.setSceneRect(-Config.VIS_DELTA, -Config.VIS_DELTA,
@@ -110,6 +113,11 @@ class ImagePresentation:
 
     def getCurPatch(self):
         return self.mCurPatch
+
+    def getCurSize(self):
+        if self.mCurPixmapH is not None:
+            return self.mCurPixmapH.getSize()
+        return None
 
     #==========================
     def setCursor(self, cursor):
@@ -156,8 +164,9 @@ class ImagePresentation:
             self.mMarkupCtrl.deactivate()
         self.mMarkupCtrl = ctrl
         if self.mMarkupCtrl is not None:
-            self._clearPoints()
+            self._clearMarkPoints()
             self._clearPolygons()
+            GraphicsSupport.clearGroup(self.mDetectGroup)
             self.mMarkupCtrl.activate()
         self.showMarkup(self.mMarkupCtrl is not None)
         self.mGrView.setMouseEventListener(self.mMarkupCtrl)
@@ -166,9 +175,11 @@ class ImagePresentation:
         if value:
             self.mPolygonGroup.show()
             self.mPointGroup.show()
+            self.mDetectGroup.show()
         else:
             self.mPolygonGroup.hide()
             self.mPointGroup.hide()
+            self.mDetectGroup.hide()
         if value and self.mCurPatch is not None:
             self.mPatchGroup.show()
         else:
@@ -177,7 +188,11 @@ class ImagePresentation:
     def getMarkupCtrl(self):
         return self.mMarkupCtrl
 
-    def _setPoints(self, points, vtype):
+    def _getDetectGroup(self):
+        return self.mDetectGroup
+
+    #==========================
+    def _setMarkPoints(self, points):
         while len(points) > len(self.mPointItems):
             point_item = QtWidgets.QGraphicsEllipseItem()
             point_item.hide()
@@ -187,15 +202,14 @@ class ImagePresentation:
         for pp in points:
             x, y = pp
             point_item = self.mPointItems[self.mPointUsageCount]
-            GraphicsSupport.readyPointMark(point_item, x, y, vtype)
+            GraphicsSupport.readyPointMark(point_item, x, y)
             point_item.show()
             self.mPointUsageCount += 1
         for idx in range(self.mPointUsageCount, len(self.mPointItems)):
             self.mPointItems[idx].hide()
 
-    #==========================
-    def _clearPoints(self):
-        self._setPoints([], None)
+    def _clearMarkPoints(self):
+        self._setMarkPoints([])
 
     #==========================
     def _clearPolygons(self):
@@ -220,15 +234,17 @@ class ImagePresentation:
         poly_item.hide()
 
     #==========================
-    def makePatch(self, point):
+    def makePatch(self, point, angle = None):
         assert self.mCurImageH is not None
         if not PatchHandler.checkIfCenterCorrect(
                 self.mCurPixmapH.getPixmap().width(),
                 self.mCurPixmapH.getPixmap().height(), point):
             return
 
-        self.mCurPatch = PatchHandler(self.mCurImageH, point,
-            self.mTopPre.getVPatchPre().getCurAngle())
+        if angle is None:
+            angle = self.mTopPre.getVPatchPre().getCurAngle()
+
+        self.mCurPatch = PatchHandler(self.mCurImageH, point, angle)
         self.mCurPatch.setupImage(
             GraphicsSupport.makePatchPixmap(
                 self.mCurPixmapH.getPixmap(),

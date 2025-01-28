@@ -132,6 +132,12 @@ def splitOrtho(base_vec, vec):
     return vec1, delta(vec1, vec)
 
 #=================================
+def mapOrtho(base_vec, vec):
+    l0 = length(*base_vec)
+    base_ortho = [base_vec[1], -base_vec[0]]
+    return (smult(base_vec, vec)/l0, smult(base_ortho, vec)/l0)
+
+#=================================
 def lineFormula(p0, p1):
     vec = delta(p0, p1)
     l0 = length(*vec)
@@ -147,6 +153,17 @@ def mapPoint(mm, pp):
     return [
         round(mm[0][0] * pp[0] + mm[0][1] * pp[1] + mm[0][2]),
         round(mm[1][0] * pp[0] + mm[1][1] * pp[1] + mm[1][2])]
+
+
+#=================================
+def area(points):
+    res = 0
+    d1 = delta(points[0], points[1])
+    for idx in range(2, len(points)):
+        dd = delta(points[0], points[idx])
+        res += xmult(d1, dd)
+        d1 = dd
+    return res
 
 #=================================
 sDEBUG_SEGMENTS = None

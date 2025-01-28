@@ -2,7 +2,7 @@ from config.messenger import msg
 
 from h2tools.utils import getExceptionValue
 import tools.geom as geom
-from .cropper import Cropper
+from .patch_cropper import PatchCropper
 from .v_types import VType
 
 #=================================
@@ -19,6 +19,7 @@ class PatchDescr:
         self.mSelCount = 0
         self.mDirtiness = 0
         self.mFeatures = set()
+        self.mBoundEvents = []
 
     def setMarkupPoints(self, points, type, sel_count = 1):
         self.mMarkupPoints = points
@@ -58,8 +59,15 @@ class PatchDescr:
     def addFeature(self, feature):
         self.mFeatures.add(feature)
 
+    def addBoundEvents(self, tp, bounds):
+        for evt in bounds:
+            self.mBoundEvents.append([tp, evt])
+
+    def getBoundEvents(self):
+        return iter(self.mBoundEvents)
+
     def getReport(self):
-        rep = [self.mCropper.getInfo()]
+        rep = ["Geometry: " + self.mCropper.getParams()]
         if self.mSelCount > 0:
             rep.append(f"Selection count: {self.mSelCount}")
         if self.mMarkupType is not None:
@@ -73,11 +81,23 @@ class PatchDescr:
             rep.append(f"Dirtiness: {self.mDirtiness}")
         if self.mBlotting > 0:
             rep.append(f"Blots: {self.mDirtiness}")
+        if len(self.mBoundEvents) > 0:
+            self.mBoundEvents.sort()
+            b_rep = ["Bounds:"]
+            tp0 = None
+            for tp, evt in self.mBoundEvents:
+                if tp0 != tp:
+                    b_rep.append("|" + tp + ":")
+                    tp0 = tp
+                b_rep.append(str(evt))
+            rep.append(" ".join(b_rep))
+
         if len(self.mFeatures) > 0:
             rep.append("Features: " + " ".join(sorted(self.mFeatures)))
         return rep
 
     def toJSon(self):
+        self.mBoundEvents.sort()
         ret = {
             "target": self.targetVector(),
             "markup-type": self.mMarkupType,
@@ -86,7 +106,8 @@ class PatchDescr:
             "chunking": self.mChunking,
             "dirtiness": self.mDirtiness,
             "blotting": self.mDirtiness,
-            "features": list(sorted(self.mFeatures))}
+            "features": list(sorted(self.mFeatures)),
+            "bound-events": self.mBoundEvents}
         info = self.mCropper.toJSon()
         for key, val in info.items():
             ret[key] = val
@@ -98,7 +119,7 @@ class PatchDescr:
 class PatchHandler:
     def __init__(self, img_h, center, angle = 0):
         self.mImgH = img_h
-        self.mCropper = Cropper(center, angle)
+        self.mCropper = PatchCropper(center, angle)
         self.mStatusMessage = msg("vpatch.no.markup")
         self.mPixmap = None
         self.mDescr = None
@@ -106,7 +127,7 @@ class PatchHandler:
 
     @classmethod
     def checkIfCenterCorrect(cls, width, height, point):
-        return Cropper.checkIfCenterCorrect(width, height, point)
+        return PatchCropper.checkIfCenterCorrect(width, height, point)
 
     def getImgH(self):
         return self.mImgH
@@ -130,13 +151,17 @@ class PatchHandler:
         return (self.mDescr.getMarkupPoints()
             if self.mDescr is not None else None)
 
+    def getBoundEvents(self):
+        return (self.mDescr.getBoundEvents()
+            if self.mDescr is not None else None)
+
     def getComplexity(self):
         return (self.mDescr.getComplexity()
             if self.mDescr is not None else -1)
 
     def getReport(self):
         rep = ["Image: " + self.mImgH.getImagePath(),
-            self.mCropper.getInfo(),
+            "Geometry: " + self.mCropper.getParams(),
             "",
             f"Status: {self.mStatusMessage}"]
         if self.mDescr is not None:
@@ -188,21 +213,27 @@ class PatchHandler:
         return descr
 
     def _evalAreaPath(self, p_descr, tp_descr, points):
-        area = self.mCropper.measureArea(points)
+        segments = self.mCropper.cropArea(points)
+        if len(segments) == 0:
+            return
+        area = self.mCropper.measureArea(segments)
         if area > 0:
             p_descr.addFeature(tp_descr.getReducedType())
             if tp_descr.getType() == "dirt":
                 p_descr.addDirtiness(area)
             elif tp_descr.getType() == "blot":
                 p_descr.addBlotting(area)
+        bounds = self.mCropper.boundsOfArea(segments)
+        if bounds:
+            p_descr.addBoundEvents(tp_descr.getReducedType(), bounds)
 
     def _evalCurvePath(self, p_descr, tp_descr, points, selection):
-        chunks = self.mCropper.cutCurve(points, tp_descr.isClosed())
-        if chunks is None or len(chunks) == 0:
+        segments = self.mCropper.cutCurve(points, tp_descr.isClosed())
+        if segments is None or len(segments) == 0:
             return
         p_descr.addFeature(tp_descr.getReducedType())
         n_chunks = 0
-        for ch in chunks:
+        for ch in segments:
             line = self.mCropper.adaptChunk(ch)
             if line is None:
                 n_chunks += 1
@@ -212,3 +243,6 @@ class PatchHandler:
         if n_chunks > 0:
             p_descr.addFeature("chunks")
             p_descr.setChunking(n_chunks)
+        bounds = self.mCropper.boundsOfPoly(segments)
+        if bounds:
+            p_descr.addBoundEvents(tp_descr.getReducedType(), bounds)

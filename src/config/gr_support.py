@@ -114,13 +114,12 @@ class GraphicsSupport:
     MARK_D = 2 * MARK_R
 
     @classmethod
-    def readyPointMark(cls, point_item, x, y, vtype):
+    def readyPointMark(cls, point_item, x, y, brush = "_active"):
         point_item.hide()
         point_item.setRect(x - cls.MARK_R, y - cls.MARK_R,
             cls.MARK_D, cls.MARK_D)
         point_item.setPen(cls.stdPen("_bound"))
-        #point_item.setBrush(cls.stdBrush("mark." + vtype))
-        point_item.setBrush(cls.stdBrush("_active"))
+        point_item.setBrush(cls.stdBrush(brush))
 
     @classmethod
     def readyPolygon(cls, poly_item, points, vtype, is_closed, is_current):
@@ -135,15 +134,39 @@ class GraphicsSupport:
         poly_item.setBrush(cls.stdBrush(vtype
             if is_closed else "_transparent"))
 
+    sBoundCtrl = [
+        (0, 1),
+        (0, -1),
+        (1, 1),
+        (1, -1)
+    ]
+
     @classmethod
-    def readyPatchMarkup(cls, markup_group, markup_points):
-        if markup_points is None:
-            return False
+    def readyPatchMarkup(cls, markup_group, bound_events):
         cls.clearGroup(markup_group)
-        p1, p2 = markup_points
-        line = QtWidgets.QGraphicsLineItem(p1[0], p1[1], p2[0], p2[1])
-        line.setPen(cls.stdPen("_current"))
-        markup_group.addToGroup(line)
+        for tp, evt in bound_events:
+            pp, p_add = evt
+            if isinstance(p_add, list):
+                pp1 = p_add
+            else:
+                pp1 = None
+                for i_z in (0, 1):
+                    if not isinstance(pp[i_z], int):
+                        continue
+                    pp1 = list(pp)
+                    if abs(p_add) > 5:
+                        pp1[1 - i_z] += 8
+                        pp = list(pp)
+                        pp[1 - i_z] -= 8
+                        break
+                    m_z = 1 if pp[i_z] == 0 else -1
+                    pp1[i_z] += 16 * m_z
+                    pp1[1 - i_z] += 16 * m_z * p_add
+                    break
+                assert pp1 is not None
+            line = QtWidgets.QGraphicsLineItem(pp[0], pp[1], pp1[0], pp1[1])
+            line.setPen(cls.stdPen(tp))
+            markup_group.addToGroup(line)
         return True
 
     @classmethod
@@ -186,9 +209,9 @@ class GraphicsSupport:
     @classmethod
     def makePatchPixmap(cls, pixmap, cropper):
         x0, y0 = cropper.mapToGlobal([0, 0])
+        width, height = cropper.getBounds()
         if cropper.getAngle() == 0:
-            return pixmap.copy(x0, y0,
-                cropper.getSize(), cropper.getSize())
+            return pixmap.copy(x0, y0, width, height)
         p_poly = cropper.getPoly(False)
         x1 = min(pp[0] for pp in p_poly)
         x2 = max(pp[0] for pp in p_poly)
@@ -202,8 +225,22 @@ class GraphicsSupport:
         rotated_pixmap = local_pixmap.transformed(mm,
             QtCore.Qt.SmoothTransformation);
         return rotated_pixmap.copy(
-            round((rotated_pixmap.height() - cropper.getSize())/2),
-            round((rotated_pixmap.width() - cropper.getSize())/2),
-            cropper.getSize(), cropper.getSize())
+            round((rotated_pixmap.width() - width)/2),
+            round((rotated_pixmap.height() - height)/2),
+            width, height)
+
+    @classmethod
+    def readyLineDetection(cls, detect_group, lineDetectResults):
+        cls.clearGroup(detect_group)
+        if lineDetectResults is None:
+            return
+        for pp, pp1, pp2, _ in lineDetectResults:
+            line = QtWidgets.QGraphicsLineItem(pp1[0], pp1[1], pp2[0], pp2[1])
+            line.setPen(cls.stdPen("_bound"))
+            detect_group.addToGroup(line)
+            point_item = QtWidgets.QGraphicsEllipseItem()
+            cls.readyPointMark(point_item, pp[0], pp[1], "_transparent")
+            point_item.show()
+            detect_group.addToGroup(point_item)
 
 #=================================

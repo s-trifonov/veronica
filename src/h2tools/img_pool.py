@@ -25,7 +25,7 @@ class PixmapHandler:
         return self.mPixmap
 
     def getSize(self):
-        return self.mPixmap.height(), self.mPixmap.width()
+        return self.mPixmap.width(), self.mPixmap.height()
 #=================================
 class ImagePool:
     def __init__(self, size):

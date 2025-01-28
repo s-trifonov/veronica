@@ -80,7 +80,7 @@ class MarkupPathController(MouseScenario_Generic):
     def getNewPath(self):
         if not self.mIsActive or self.mNewPathCtrl is None:
             return None
-        return self.mNewPathCtrl.getPathCtrl()
+        return self.mNewPathCtrl.getPath()
 
     def startNewPath(self, vtype):
         assert self.mIsActive
@@ -108,8 +108,6 @@ class MarkupPathController(MouseScenario_Generic):
         if self.mIsActive:
             self._reserveGr()
             self.drawAll()
-        if self.mIsActive:
-            self.drawAll()
 
     def _reserveGr(self):
         self.getViewPort()._clearPolygons()
@@ -122,11 +120,10 @@ class MarkupPathController(MouseScenario_Generic):
 
     def _curGrPoints(self):
         if self.mCurPathH is None or self.mNewPathCtrl is not None:
-            self.getViewPort()._clearPoints()
+            self.getViewPort()._clearMarkPoints()
             return
         cur_path = self.mCurPathH.getPathCtrl()
-        self.getViewPort()._setPoints(
-            cur_path.getPoints(), cur_path.getType())
+        self.getViewPort()._setMarkPoints(cur_path.getPoints())
 
     def drawAll(self):
         self.mHotPathIdx = None
@@ -239,8 +236,8 @@ class NewPathSubController(MouseScenario_NewPath):
         return "new-path"
 
     def changePathType(self, vtype):
-        if self.getPathCtrl().canChangeType(vtype):
-            self.getPathCtrl().changeType(vtype)
+        if self.getPath().canChangeType(vtype):
+            self.getPath().changeType(vtype)
             self.onPathChange()
 
     def onActivate(self):
@@ -248,24 +245,24 @@ class NewPathSubController(MouseScenario_NewPath):
 
     def onDeactivate(self):
         self.getViewPort()._freePolygon(self.mPolyItem)
-        self.getViewPort()._clearPoints()
+        self.getViewPort()._clearMarkPoints()
         self.mPolyItem = None
 
     def onPathChange(self):
-        ptype, points = self.getPathCtrl().getInfo()
-        self.getViewPort()._setPoints(points, ptype)
-        if self.getPathCtrl().isComplete():
+        _, points = self.getPath().getInfo()
+        self.getViewPort()._setMarkPoints(points)
+        if self.getPath().isComplete():
             self.mMasterPre.newPathCompleted(self)
         else:
-            self._viewPoly(self.getPathCtrl().drawPoly())
+            self._viewPoly(self.getPath().drawPoly())
 
     def _viewPoly(self, view_poly):
         if view_poly in (None, True):
             self.mPolyItem.hide()
         else:
             GraphicsSupport.readyPolygon(
-                self.mPolyItem, view_poly, self.getPathCtrl().getType(),
-                self.getPathCtrl().isClosed(), is_current=True)
+                self.mPolyItem, view_poly, self.getPath().getType(),
+                self.getPath().isClosed(), is_current=True)
             self.mPolyItem.show()
 
     def viewPoly(self, view_poly):

@@ -1,8 +1,9 @@
 from h2tools.tools_qt import newQItem
 from config.messenger import msg
 from model.v_types import VType
-from model.train_pack import TrainPack
+from model.train_stroke import TrainStrokePack
 from .markup_ctrl import MarkupPathController
+from .detect_ctrl import DetectController
 
 #=================================
 class ImageEntryPresentation:
@@ -12,7 +13,7 @@ class ImageEntryPresentation:
         self.mTabBox = self.mTopPre.getEnv().getWidget("img-entry-tabbox")
         self.mTabs = {
             key: self.mTopPre.getEnv().getWidget("img-entry-tab-" + key)
-            for key in ("info", "learn")
+            for key in ("info", "learn", "detect")
         }
 
         self.mRounds = {
@@ -42,6 +43,11 @@ class ImageEntryPresentation:
         self.mMarkupPathCtrl = MarkupPathController(self,
             self.mTopPre.getImagePre())
 
+        self.mDetectParamsLine = self.mTopPre.getEnv().getWidget(
+            "detect-line-params")
+        self.mDetectCtrl = DetectController(self,
+            self.mTopPre.getImagePre(), self.mDetectParamsLine)
+
         self.mImageH = False
         self.mInfoData = None
         self.mLearnData = None
@@ -62,6 +68,9 @@ class ImageEntryPresentation:
 
         self.mTabs["learn"].setDisabled(self.mLearnData is None)
         self.mTabs["info"].setDisabled(self.mImageH is None)
+        self.mTabs["detect"].setDisabled(self.mImageH is None)
+
+        self.mDetectCtrl.updateImage(self.mImageH)
 
         forward_loc, self.mForwardLoc = self.mForwardLoc, None
         forward_idx = None
@@ -127,11 +136,11 @@ class ImageEntryPresentation:
                 self._startNewPath()
         elif self.mMarkupPathCtrl.isActive():
             self.mMarkupPathCtrl.clearNewPath()
-            self.mTopPre.getImagePre().runMarkupCtrl(None)
+            self.mTopPre.getImagePre().runMarkupCtrl(
+                self.mDetectCtrl if self.mTabs["detect"].isCurrent() else None)
         self.mPostNewPath = False
 
         cur_path = self.mMarkupPathCtrl.getCurPath()
-        new_path = self.mMarkupPathCtrl.getNewPath()
         if cur_path is not None:
             self.mComboPathType.setValue(cur_path.getType())
             self.mTableView.selectRow(self.mMarkupPathCtrl.getCurPathIdx())
@@ -140,8 +149,9 @@ class ImageEntryPresentation:
             not learn_mode)
         self.mTopPre.getEnv().disableAction("img-entry-path-delete",
             cur_path is None)
-        self.mButtonPathCreate.setChecked(new_path is not None)
 
+        new_path = self.mMarkupPathCtrl.getNewPath()
+        self.mButtonPathCreate.setChecked(new_path is not None)
         can_change_type = cur_path is None and new_path is None
         enable_all_types = True
         if new_path is not None:
@@ -275,9 +285,9 @@ class ImageEntryPresentation:
         self.mTopPre.getEnv().notifyStatus(msg("train.pack.work"))
         pixmap_h = self.mTopPre.getImagePixmapHandler(
             self.mImageH).getPixmap()
-        train_pack = TrainPack(self.mTopPre.getEnv(),
-            self.mImageH, pixmap_h.height(),
-            pixmap_h.width(), self.mMarkupPathCtrl.getPathSeq())
+        train_pack = TrainStrokePack(self.mTopPre.getEnv(),
+            self.mImageH, pixmap_h.width(), pixmap_h.height(),
+            self.mMarkupPathCtrl.getPathSeq())
         round_h = self.mTopPre.getProject().getRound("lpack")
         annotation_h = round_h.getAnnotation(
             self.mImageH.getLongName(), True)
@@ -408,5 +418,10 @@ class ImageEntryPresentation:
                     cur_path.changeType(new_type)
                     self.pathChanged(cur_path,
                         self.mMarkupPathCtrl.getCurPathIdx())
+            act.done()
+            return
+
+        if act.isAction("detect-line"):
+            self.mDetectCtrl.startDetectLine()
             act.done()
             return

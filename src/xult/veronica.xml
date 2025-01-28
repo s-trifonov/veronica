@@ -134,6 +134,12 @@
                                         <push-button text="img.to-learn" command="img-entry-to-learn"/>
                                     </hbox>
                                 </tab>
+                                <tab id="img-entry-tab-detect" text="img.entry.tab.detect">
+                                    <vbox>
+                                        <line-edit id="detect-line-params"/>
+                                        <push-button text="detect.line" command="img-entry-detect-line"/>
+                                    </vbox>
+                                </tab>
                                 <tab id="img-entry-tab-learn" text="img.entry.tab.learn">
                                     <vbox>
                                         <table-view id="markup-path-table" persist="column-sizes"

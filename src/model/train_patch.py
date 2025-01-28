@@ -1,6 +1,6 @@
 from random import Random
 from config.ver_cfg import Config
-from .cropper import Cropper
+from .patch_cropper import PatchCropper
 from .patch import PatchHandler
 
 #=================================
@@ -28,13 +28,13 @@ class _PatchPool:
         return self.mVariants[:size]
 
 #=================================
-class TrainPack:
-    def __init__(self, env, img_h, height, width, markup_seq, seed = 179):
+class TrainPatchPack:
+    def __init__(self, env, img_h, width, height, markup_seq, seed = 179):
         self.mImgH = img_h
         self.mMarkupSeq = markup_seq
         self.mRH = Random(seed)
         self.mPools = [_PatchPool(self.mRH)]
-        self.mCorrectRegion = Cropper.fullCorrectRegion(width, height)
+        self.mCorrectRegion = PatchCropper.fullCorrectRegion(width, height)
         env.startProgress(Config.TRAIN_PACK_MAX_ITERATIONS)
         for _ in range(Config.TRAIN_PACK_MAX_ITERATIONS):
             self._makeOne()
