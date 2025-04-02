@@ -2,7 +2,7 @@ import sys
 
 from config.messenger import msg
 from tools.utils import raiseRuntimeError, getExceptionValue
-from markup.xmlutils import parseXMLFile
+from tools.xmlutils import parseXMLFile
 
 #=========================================
 class Shell_Environment:

@@ -44,6 +44,8 @@ class TopPresentation:
         self.mCurImage = None
 
         self.mVPatchPre = VPatch_Presentation(self)
+        self.mEnv.getUIAction("vpatch-sup-raise").setDisabled(
+            not self.mProject.hasAdvancedMode())
 
     def start(self):
         self.mEnv.start()

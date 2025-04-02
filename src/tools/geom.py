@@ -20,6 +20,10 @@ def linePoint(p0, p1, c):
         c * p1[1] + (1 - c) * p0[1])
 
 #=================================
+def shiftPoint(p0, dd, sign=1):
+    return [p0[j] + sign * dd[j] for j in (0, 1)]
+
+#=================================
 def delta(p0, p1):
     return (p1[0] - p0[0], p1[1] - p0[1])
 

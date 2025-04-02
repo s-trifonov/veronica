@@ -59,6 +59,11 @@
                 <item value="180%" image="zoom.png"/>
                 <item value="190%" image="zoom.png"/>
                 <item value="200%" image="zoom.png"/>
+                <item value="210%" image="zoom.png"/>
+                <item value="220%" image="zoom.png"/>
+                <item value="230%" image="zoom.png"/>
+                <item value="240%" image="zoom.png"/>
+                <item value="250%" image="zoom.png"/>
              </combo-box>
             <label/>
             <separator orient="vertical"/>
@@ -129,6 +134,7 @@
                                         </combo-box>
                                         <line-edit id="info-edit-note" command="!img-entry-edit-info"
                                         title="info.edit.note.title"/>
+                                        <label id="info-edit-smp-no" title="info.edit.smp-no.title"/>
                                     </form>
                                     <hbox min-height="30" align="bottom">
                                         <push-button text="img.to-learn" command="img-entry-to-learn"/>

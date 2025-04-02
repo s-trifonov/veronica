@@ -4,7 +4,6 @@ from io import StringIO
 from lxml import etree
 
 from config.messenger import msg
-from .xmlerr import XML_ErrTranslator
 #===================================================
 class _H:
     sXMLParser  = etree.XMLParser(remove_comments = True)
@@ -13,6 +12,7 @@ class _H:
         recover = False, remove_comments = True)
     sXMLHeavyParser = etree.XMLParser(
         recover = False, remove_comments = True)
+    sXMLErrTranslator = None
 
 #====XML===
 def simpleLoadXML(fname):
@@ -34,11 +34,16 @@ def parseXMLFile(fname, with_errors = False):
         e_log = e.error_log.filter_from_level(etree.ErrorLevels.FATAL)
 
     if e_log is not None:
-        error_log = XML_ErrTranslator.parseXMLErrors(e_log)
         print("XML PARSE Errors for", fname, file=sys.stderr)
-        for err_line in error_log:
-            sys.stderr.write(err_line)
-        print("===", file=sys.stderr)
+        if _H.sXMLErrTranslator is not None:
+            error_log = _H.sXMLErrTranslator(e_log)
+            for err_line in error_log:
+                sys.stderr.write(err_line)
+            print("===", file=sys.stderr)
+        else:
+            for err_line in e_log:
+                sys.stderr.write(err_line)
+            print("===", file=sys.stderr)
     inp.close()
     if not with_errors:
         if doc is None:

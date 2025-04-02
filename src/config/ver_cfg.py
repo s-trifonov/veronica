@@ -26,6 +26,11 @@ class Config:
 
     TOO_SMALL = 1E-10
 
+    SMP_ROUND = "learn"
+
+    SMP_KEY = "V0"
+    SMP_UNREADY_FREE_COUNT = 5
+
     VIS_DELTA = 5
     MIN_DIST = 20
     MIN_DIAMETER = 50

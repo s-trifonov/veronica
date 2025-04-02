@@ -3,6 +3,8 @@ from .storage import AnnotationStorage
 from .dir_h import DirHandler
 #=========================================
 class Project:
+    V_MODE = "Vesiculae.0"
+
     def __init__(self, project_path, env, adv_mode):
         self.mEnv = env
         self.mProjPath = project_path
@@ -10,6 +12,10 @@ class Project:
         #  TODO: errors & checks, new/update/delete
         with open(project_path, "r", encoding = "utf-8") as input:
             self.mInfo = json.loads(input.read())
+
+        prj_mode = self.mInfo.get("prj-mode", self.V_MODE)
+        assert prj_mode == self.V_MODE, (
+            f"Mode {prj_mode} not supported, use {self.V_MODE}")
 
         self.mName = self.mInfo["prj-name"]
         self.mAdvMode = adv_mode

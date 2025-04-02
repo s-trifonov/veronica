@@ -54,7 +54,7 @@ class DirImagesPresentation:
             self.mCurRoundVal)
         self.mTreeWidget.clear()
         self.mItemsMap = {}
-        self._fillDirItems(None, self.mTopPre.getProject().getTopDir())
+        self._fillDirItems(self.mTopPre.getProject().getTopDir())
         if prev_sel is not None:
             self.selectItem(prev_sel)
 
@@ -107,10 +107,10 @@ class DirImagesPresentation:
 #        self.mContextActions["mark-to-learn"].setDisabled(it is None)
 
     def userAction(self, act):
-        if act.isAction("mark-to-learn"):
-            print("Marked")
-            act.done()
-            return
+#        if act.isAction("mark-to-learn"):
+#            print("Marked")
+#            act.done()
+#            return
 
         if act.isAction("check-round"):
             self.mTopPre.getEnv().needsUpdate()
@@ -143,12 +143,11 @@ class DirImagesPresentation:
         item.setData(0, QtCore.Qt.UserRole, image_h)
         item.setText(0, qt_str(image_h.getName()))
 
-        learn_data = image_h.getAnnotationData(
-            self.mTopPre.getProject().getRound("learn"))
-        l_icon = "image.png"
-        if learn_data is not None:
-            l_icon = ("image_ok"
-                if learn_data.get("status") == "ready" else "image_proc.png")
+        l_status = image_h.getDir().getSmpSupport().getImageStatus(image_h)
+        if l_status is None:
+            l_icon = "image.png"
+        else:
+            l_icon = "image_ok.png" if l_status else"image_proc.png"
         item.setIcon(0, self.getIcon(l_icon))
 
         info_data = image_h.getAnnotationData(
@@ -165,7 +164,7 @@ class DirImagesPresentation:
 
 
     #=================================
-    def _fillDirItems(self, parent, dir_h):
+    def _fillDirItems(self, dir_h, parent=None):
         if parent is not None:
             dir_item = self._makeTreeDirItem(parent, dir_h)
         else:
@@ -173,10 +172,15 @@ class DirImagesPresentation:
         items = []
         for subdir_h in dir_h.getDirectories():
             if not subdir_h.isEmpty(self.mCurRoundH):
-                items.append(self._fillDirItems(dir_item, subdir_h))
-        for image_h in dir_h.getImages():
-            if image_h.hasAnnotation(self.mCurRoundH):
+                items.append(self._fillDirItems(subdir_h, dir_item))
+        smp_support = dir_h.getSmpSupport()
+        if smp_support.sameRound(self.mCurRoundH):
+            for image_h in smp_support.getImages():
                 items.append(self._makeTreeImageItem(dir_item, image_h))
+        else:
+            for image_h in dir_h.getImages():
+                if image_h.hasAnnotation(self.mCurRoundH):
+                    items.append(self._makeTreeImageItem(dir_item, image_h))
         if parent is None:
             self.mTreeWidget.addTopLevelItems(items)
             return None

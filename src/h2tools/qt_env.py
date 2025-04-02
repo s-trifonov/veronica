@@ -6,7 +6,7 @@ from .runtime import RuntimeEnvironment, RT_Guard
 from .tools_qt import IdleStep, ActionEvent, loopEvents, qt_str
 from .utils import runSpawnCmd
 from .prefs import PreferenceHandler
-from markup.xmlutils import parseXMLFile
+from .xmlutils import parseXMLFile
 
 #=========================================
 class QT_Environment(QtCore.QObject):

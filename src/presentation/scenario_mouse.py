@@ -30,6 +30,10 @@ class MouseEventListener:
     def noButtons(self, event):
         return int(event.buttons()) == 0
 
+    def isClick(self, event):
+        return (event is not None
+            and event.type == QtCore.QEvent.MouseButtonPress)
+
     #==========================
     def setHint(self, hint):
         self.mViewPort.getEnv().notifyStatus(hint, hint_mode=True)
@@ -172,7 +176,7 @@ class MouseScenario_Generic(MouseEventListener):
     def onUnclick(self, event):
         pass
 
-    def mouseBlocked(self):
+    def mouseBlocked(self, event):
         return False
 
     #====================
@@ -225,7 +229,7 @@ class MouseScenario_Generic(MouseEventListener):
 
     #====================
     def mouseMoveEvent(self, event):
-        if self.mouseBlocked():
+        if self.mouseBlocked(event):
             self.setCursor(QtCore.Qt.WhatsThisCursor)
             return
         if self.subScenario() is not None:
@@ -270,7 +274,7 @@ class MouseScenario_Generic(MouseEventListener):
 
     def mouseReleaseEvent(self, event):
         self.onUnclick(event)
-        if self.mouseBlocked():
+        if self.mouseBlocked(event):
             self.setCursor(QtCore.Qt.WhatsThisCursor)
             return
         if self.subScenario() is not None:

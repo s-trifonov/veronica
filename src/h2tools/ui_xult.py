@@ -5,8 +5,8 @@ from config.messenger import msg
 from config.ver_cfg import Config
 from config.qss import DefaultStyleCfg
 from .tools_qt import qt_str
-from markup.xmltrace import TracedXMLNode
-from markup.xmlutils import (simpleLoadXML, isNode,
+from .xmltrace import TracedXMLNode
+from .xmlutils import (simpleLoadXML, isNode,
     nodeNoAttrs, nodeIsPure, nodeIsJustContainer)
 
 import h2tools.qt_conv as qt_conv
@@ -683,6 +683,8 @@ class UI_XultActivator:
         return ctrl
 
     def _activate_scintilla(self, node, parent):
+        assert qt_widgets.SCINTILLA_AWAILABLE, (
+            "Use QScintilla package to access widget")
         ctrl = qt_widgets.Scintilla(parent)
         self._setupCtrl_Id(ctrl, node)
         self._setupCtrl_Command(ctrl, node, kind = "textChanged")

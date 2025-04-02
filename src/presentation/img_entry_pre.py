@@ -1,7 +1,6 @@
 from h2tools.tools_qt import newQItem
 from config.messenger import msg
 from model.v_types import VType
-from model.train_stroke import TrainStrokePack
 from .markup_ctrl import MarkupPathController
 from .detect_ctrl import DetectController
 
@@ -23,7 +22,7 @@ class ImageEntryPresentation:
 
         self.mInfoCtrl = {
             key: self.mTopPre.getEnv().getWidget("info-edit-" + key)
-            for key in ("quality", "mark", "note")
+            for key in ("quality", "mark", "note", "smp-no")
         }
 
         self.mTableView = self.mTopPre.getEnv().getWidget(
@@ -48,6 +47,8 @@ class ImageEntryPresentation:
         self.mDetectCtrl = DetectController(self,
             self.mTopPre.getImagePre(), self.mDetectParamsLine)
 
+        if not self.mTopPre.getProject().hasAdvancedMode():
+            self.mDetectCtrl = None
         self.mImageH = False
         self.mInfoData = None
         self.mLearnData = None
@@ -68,9 +69,11 @@ class ImageEntryPresentation:
 
         self.mTabs["learn"].setDisabled(self.mLearnData is None)
         self.mTabs["info"].setDisabled(self.mImageH is None)
-        self.mTabs["detect"].setDisabled(self.mImageH is None)
+        self.mTabs["detect"].setDisabled(self.mImageH is None
+            or self.mDetectCtrl is None)
 
-        self.mDetectCtrl.updateImage(self.mImageH)
+        if self.mDetectCtrl is not None:
+            self.mDetectCtrl.updateImage(self.mImageH)
 
         forward_loc, self.mForwardLoc = self.mForwardLoc, None
         forward_idx = None
@@ -80,9 +83,8 @@ class ImageEntryPresentation:
             else:
                 tab_loc, forward_idx = forward_loc
         else:
-            if self.mLearnData is None:
-                tab_loc = "info"
-            elif (self.mLearnData is not None and
+            tab_loc = "info"
+            if (self.mLearnData is not None and
                     self.mTopPre.getCurRound() is not None and
                     self.mTopPre.getCurRound().getType() == "learn"):
                 tab_loc = "learn"
@@ -93,6 +95,9 @@ class ImageEntryPresentation:
         self.mInfoCtrl["quality"].setValue(self.mInfoData.get("quality", 0))
         self.mInfoCtrl["mark"].setValue(self.mInfoData.get("mark", "*"))
         self.mInfoCtrl["note"].setText(self.mInfoData.get("note", ""))
+        self.mInfoCtrl["smp-no"].setText(
+            str(self.mImageH.getDir().getSmpSupport().getImageNo(self.mImageH))
+            if self.mImageH is not None else "")
 
         self.mTableView.clearModel()
 
@@ -121,9 +126,11 @@ class ImageEntryPresentation:
             self.mTopPre.getEnv().disableAction("img-entry-" + key,
                 key not in avail_op)
         self.mTopPre.getEnv().disableAction("img-entry-to-learn",
-            self.mLearnData is not None)
+            self.mImageH is None or not self.mImageH.getDir().
+                getSmpSupport().canAddToLearn(self.mImageH))
         self.mTopPre.getEnv().disableAction("img-entry-out-of-learn",
-            self.mLearnData is None)
+            self.mImageH is None or self.mImageH.getDir().
+                getSmpSupport().getImageStatus(self.mImageH) is None)
 
         self.mTopPre.blockEntry("save" in avail_op)
         self.mButtonMarkupDone.setHidden(not self.mTabs["learn"].isCurrent())
@@ -281,22 +288,22 @@ class ImageEntryPresentation:
         self.resetState()
         self.needsUpdate()
 
-    def keepTrainPack(self):
-        self.mTopPre.getEnv().notifyStatus(msg("train.pack.work"))
-        pixmap_h = self.mTopPre.getImagePixmapHandler(
-            self.mImageH).getPixmap()
-        train_pack = TrainStrokePack(self.mTopPre.getEnv(),
-            self.mImageH, pixmap_h.width(), pixmap_h.height(),
-            self.mMarkupPathCtrl.getPathSeq())
-        round_h = self.mTopPre.getProject().getRound("lpack")
-        annotation_h = round_h.getAnnotation(
-            self.mImageH.getLongName(), True)
-        pack_info = train_pack.getResult()
-        annotation_h.setData(pack_info)
-        annotation_h.doSave()
-
-        self.mTopPre.getEnv().notifyStatus(
-            msg("train.pack.kept", pack_info["total"]))
+#    def keepTrainPack(self):
+#        self.mTopPre.getEnv().notifyStatus(msg("train.pack.work"))
+#        pixmap_h = self.mTopPre.getImagePixmapHandler(
+#            self.mImageH).getPixmap()
+#        train_pack = TrainStrokePack(self.mTopPre.getEnv(),
+#            self.mImageH, pixmap_h.width(), pixmap_h.height(),
+#            self.mMarkupPathCtrl.getPathSeq())
+#        round_h = self.mTopPre.getProject().getRound("lpack")
+#        annotation_h = round_h.getAnnotation(
+#            self.mImageH.getLongName(), True)
+#        pack_info = train_pack.getResult()
+#        annotation_h.setData(pack_info)
+#        annotation_h.doSave()
+#
+#        self.mTopPre.getEnv().notifyStatus(
+#            msg("train.pack.kept", pack_info["total"]))
 
     def userAction(self, act):
         if act.isAction("tab"):
@@ -380,8 +387,8 @@ class ImageEntryPresentation:
                     if data.get("status") != "ready" else "process")
                 self.mImageH.finishAnnotationChange()
                 self.mImageH.doSave()
-                if data["status"] == "ready":
-                    self.keepTrainPack()
+                #if data["status"] == "ready":
+                #    self.keepTrainPack()
                 self.mImageH.reset(True)
                 self._resetImage()
                 act.done()
@@ -422,6 +429,7 @@ class ImageEntryPresentation:
             return
 
         if act.isAction("detect-line"):
-            self.mDetectCtrl.startDetectLine()
+            if self.mDetectCtrl is not None:
+                self.mDetectCtrl.startDetectLine()
             act.done()
             return

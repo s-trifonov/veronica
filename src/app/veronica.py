@@ -54,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--stderr",  default = "",
         help = "Redefine stderr stream")
     parser.add_argument("-p", "--profile",  default = "",
-        help = "Profile directory")
+        help = "Profile location")
     parser.add_argument("--debug", action="store_true",
         help = "No try/catch, debug mode")
     parser.add_argument("--test", action="store_true",

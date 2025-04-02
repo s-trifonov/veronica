@@ -6,8 +6,8 @@ from h2tools.tools_qt import qt_str
 from config.gr_support import GraphicsSupport
 from config.ver_cfg import Config
 import tools.geom as geom
-from model.stroke import detectStrokeCrossings
 from .scenario_mouse import MouseEventListener
+# from model.stroke import detectStrokeCrossings
 
 #=================================
 class DetectController(MouseEventListener):
@@ -123,8 +123,8 @@ class DetectController(MouseEventListener):
         if self.mWorkImagePath != self.mImageH.getImagePath():
             self.mWorkImagePath = self.mImageH.getImagePath()
             self.mWorkImage = Image.open(self.mWorkImagePath)
-        self.mLineDetectResults = detectStrokeCrossings(
-            self.mWorkImage, self.mLinePoints[0], self.mLinePoints[1])
+        #self.mLineDetectResults = detectStrokeCrossings(
+        #    self.mWorkImage, self.mLinePoints[0], self.mLinePoints[1])
         if self.mLineDetectResults is not None:
             for no, det in enumerate(self.mLineDetectResults):
                 print("no=", no, det[-1])

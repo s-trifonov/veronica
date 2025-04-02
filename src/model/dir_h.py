@@ -1,6 +1,8 @@
 import os
 from glob import glob
+from config.ver_cfg import Config
 from .img_h import ImageHandler
+from .smp_support import SampleListingSupport
 
 #=========================================
 class DirHandler:
@@ -20,6 +22,8 @@ class DirHandler:
         self.mImages = [ImageHandler(self, fname)
             for fname in glob(self.mDirPath + "/*.tif")]
         self.mImages.sort(key=lambda img: img.getName())
+        self.mSmpSupport = SampleListingSupport(self,
+            self.mProject.getRound(Config.SMP_ROUND))
 
         self.mDirectories = []
         for fname in os.listdir(self.mDirPath):
@@ -54,6 +58,9 @@ class DirHandler:
             if not dir_h.isEmpty(round):
                 return False
         return True
+
+    def getSmpSupport(self):
+        return self.mSmpSupport
 
     def getImages(self):
         return self.mImages

@@ -43,7 +43,7 @@ class MarkupPathController(MouseScenario_Generic):
     def __init__(self, master_pre, img_pre):
         MouseScenario_Generic.__init__(self, img_pre)
         self.mMasterPre = master_pre
-        self.mMarkupHidden = False
+        self.mMarkupHidden = None
         self.mPathList = None
         self.mCurPathH = None
         self.mHotPathIdx = None
@@ -208,20 +208,19 @@ class MarkupPathController(MouseScenario_Generic):
             self.mCurPathH.draw(True, view_poly)
 
     def onClick(self, event):
-        if not self.buttonIsLeft(event) and not self.mMarkupHidden:
-            self.mMarkupHidden = True
-            self.getViewPort().showMarkup(False)
+        if not self.buttonIsLeft(event):
+            if not self.mMarkupHidden:
+                self.mMarkupHidden = True
+                self.getViewPort().showMarkup(False)
+            if self.shiftMode(event):
+                self.getViewPort().makePatch(self.mapPos(event))
 
     def onUnclick(self, event):
         if self.mMarkupHidden:
             self.mMarkupHidden = False
             self.getViewPort().showMarkup(True)
 
-    def mouseBlocked(self, event = None):
-        if (event is not None and not self.buttonIsLeft(event)
-                and self.shiftMode(event)):
-            self.getViewPort().makePatch(self.mapPos(event))
-            return True
+    def mouseBlocked(self, event):
         return self.mMarkupHidden
 
 #=================================

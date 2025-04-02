@@ -1,5 +1,5 @@
-import sys
-from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets, Qsci, QtGui
+import sys, importlib
+from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets, QtGui
 from .tools_qt import qt_str, updateStyle
 from .runtime import RT_Guard
 from .utils import getExceptionValue
@@ -917,40 +917,46 @@ class WebView(QtWebEngineWidgets.QWebEngineView):
         self.setZoomFactor(zoom_state * .01)
 
 #===================================
-class Scintilla(Qsci.QsciScintilla):
-    def __init__(self, parent):
-        Qsci.QsciScintilla.__init__(self, parent)
-        self.mWheelZoomF  = None
-        self.mZoomState   = 0
+SCINTILLA_AWAILABLE = False
+if importlib.util.find_spec("PyQt5.Qsci") is not None:
+    from PyQt5 import Qsci
 
-    def setAutoZoom(self):
-        self.mWheelZoomF = self.changeZoom
+    SCINTILLA_AWAILABLE = True
 
-    def _setWheelZoomFunc(self, zoom_func):
-        self.mWheelZoomF = zoom_func
+    class Scintilla(Qsci.QsciScintilla):
+        def __init__(self, parent):
+            Qsci.QsciScintilla.__init__(self, parent)
+            self.mWheelZoomF  = None
+            self.mZoomState   = 0
 
-    def getZoomState(self):
-        return self.mZoomState
+        def setAutoZoom(self):
+            self.mWheelZoomF = self.changeZoom
 
-    def changeZoom(self, par):
-        zoom_state = self.mZoomState
-        if par > 0.:
-            zoom_state += 1
-        elif par < 0.:
-            zoom_state -= 1
-        else:
-            return
-        with RT_Guard():
-            self.setZoomState(zoom_state)
+        def _setWheelZoomFunc(self, zoom_func):
+            self.mWheelZoomF = zoom_func
 
-    def setZoomState(self, zoom_state):
-        self.mZoomState = min(20, max(-9, zoom_state))
-        self.zoomTo(self.mZoomState)
+        def getZoomState(self):
+            return self.mZoomState
 
-    def wheelEvent(self, event):
-        if self.mWheelZoomF and bool(event.modifiers() & QtCore.Qt.CTRL):
-            self.mWheelZoomF(getWheelDelta(event))
-            return event.accept()
-        return Qsci.QsciScintilla.wheelEvent(self, event)
+        def changeZoom(self, par):
+            zoom_state = self.mZoomState
+            if par > 0.:
+                zoom_state += 1
+            elif par < 0.:
+                zoom_state -= 1
+            else:
+                return
+            with RT_Guard():
+                self.setZoomState(zoom_state)
+
+        def setZoomState(self, zoom_state):
+            self.mZoomState = min(20, max(-9, zoom_state))
+            self.zoomTo(self.mZoomState)
+
+        def wheelEvent(self, event):
+            if self.mWheelZoomF and bool(event.modifiers() & QtCore.Qt.CTRL):
+                self.mWheelZoomF(getWheelDelta(event))
+                return event.accept()
+            return Qsci.QsciScintilla.wheelEvent(self, event)
 
 #===================================

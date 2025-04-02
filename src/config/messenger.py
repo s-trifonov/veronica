@@ -30,9 +30,10 @@ sMessagesV = {
     "img.clear-changes.tip": ("Сбросить модификации в разметке", 0),
     "img.undo.tip":      ("Откатить изменение", 0),
     "img.redo.tip":      ("Накатить изменение", 0),
-    "img.to-learn":      ("В разметку для обучения", 0),
-    "img.out-of-learn":  ("Убрать разметку для обучения", 0),
-    "img.out-of-learn.confirm": ("Подтвердите снятие разметки для обучения\n" +
+
+    "img.to-learn":      ("Взять в разметку", 0),
+    "img.out-of-learn":  ("Сбросить разметку", 0),
+    "img.out-of-learn.confirm": ("Подтвердите сброс разметки\n" +
         "Результат операции необратим", 0),
     "img.out-of-learn.yes": ("Снять", 0),
     "img.out-of-learn.no":  ("Отказаться", 0),
@@ -51,10 +52,10 @@ sMessagesV = {
     "markup.path.create.tip": ("Новый объект разметки", 0),
     "markup.path.delete.tip": ("Удалить объект разметки", 0),
 
-    "menu.markup.done": ("Разметка для обучения готова", 0),
+    "menu.markup.done": ("Разметка выполнена", 0),
     "dir.round.tip":    ("Выбор режима", 0),
     "dir.round.all":    ("Все изображения", 0),
-    "dir.round.learn":  ("Разметка для обучения", 0),
+    "dir.round.learn":  ("Разметка", 0),
 
     "img.entry.tab.info":  ("Снимок", 0),
     "img.entry.tab.detect": ("Зырк", 0),
@@ -62,10 +63,12 @@ sMessagesV = {
 
     "info.edit.quality.title": ("Качество", 0),
     "info.edit.quality.tip": ("Оценка качества (0-отсутствие оценки)", 0),
-    "info.to.learn": ("В разметку для обучения", 0),
     "info.edit.note.title": ("Заметка", 0),
     "info.edit.mark.tip": ("Тип заметки", 0),
     "info.edit.mark.title": ("Тип заметки", 0),
+    "info.edit.smp-no.title": ("Техномер", 0),
+
+    "info.to.learn": ("Взять в разметку", 0),
 
     "img.not.avail":    ("Изображение недоступно", 0),
     "img.not.found":    ("Изображение не найдено", 0),
@@ -116,8 +119,8 @@ sMessagesV = {
     "tip.vpatch.sup.raise":         ("Активизировать окно мини-блока", 0),
     "tip.veronica.raise":           ("Активизировать основное окно", 0),
 
-    "train.pack.work":              ("Подготовка пакета для обучения", 0),
-    "train.pack.kept":              ("Пакет для обучения готов: %d образцов", 1),
+    # "train.pack.work":              ("Подготовка пакета для обучения", 0),
+    # "train.pack.kept":              ("Пакет для обучения готов: %d образцов", 1),
 
     "action.failed":     ("Действие ничего не изменило (%s)", 1),
     "action.tab.failed": ("В текущем режиме действие не актуально (%s)", 1),

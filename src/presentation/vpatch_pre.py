@@ -115,7 +115,8 @@ class VPatch_Presentation:
 
     def userAction(self, act):
         if act.isAction("sup-raise"):
-            self.raiseOnTop()
+            if self.mTopPre.getProject().hasAdvancedMode():
+                self.raiseOnTop()
             act.done()
             return
 

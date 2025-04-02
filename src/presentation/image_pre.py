@@ -155,6 +155,31 @@ class ImagePresentation:
             Config.MIN_DIST, Config.MIN_DIST)
 
     #==========================
+    def prepareToScroll(self, event):
+        if self.mCurPixmapH is None:
+            return None
+        pos = event.pos()
+        return (pos, self.mGrView.mapToScene(pos))
+
+    def scrollIt(self, scroll_info, event):
+        #TRF: doesn't work properly!!!
+        if scroll_info is None or self.mCurPixmapH is None:
+            return
+        base_pos, base_map = scroll_info
+        pos = event.pos()
+        mapped = self.mGrView.mapToScene(pos)
+
+        self.mGrView.translate(
+            base_map.x() - mapped.x(),
+            base_map.y() - mapped.y())
+        self.mGrView.show()
+        #w, h = self.mCurPixmapH.getSize()
+        #if (rect.top() >= 0 and rect.left() >= 0 and
+        #        rect.bottom() < h and rect.right() < w):
+        print("Tr:", base_map, mapped)
+        #self.mGrView.setTransform(transform)
+
+    #==========================
     # Markup manipulations
     #==========================
     def runMarkupCtrl(self, ctrl):
@@ -239,6 +264,9 @@ class ImagePresentation:
         if not PatchHandler.checkIfCenterCorrect(
                 self.mCurPixmapH.getPixmap().width(),
                 self.mCurPixmapH.getPixmap().height(), point):
+            return
+
+        if not self.mTopPre.getProject().hasAdvancedMode():
             return
 
         if angle is None:
