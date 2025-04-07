@@ -54,7 +54,8 @@ class DirImagesPresentation:
             self.mCurRoundVal)
         self.mTreeWidget.clear()
         self.mItemsMap = {}
-        self._fillDirItems(self.mTopPre.getProject().getTopDir())
+        for dir_h in self.mTopPre.getProject().iterTopDirList():
+            self._fillDirItems(dir_h)
         if prev_sel is not None:
             self.selectItem(prev_sel)
 

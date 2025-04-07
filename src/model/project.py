@@ -22,13 +22,14 @@ class Project:
         self.mObjDict = {}
         self.mViewIdCounter = 0
         self.mAnnotations = AnnotationStorage(self)
-        self.mTopDir = DirHandler(self, self.mInfo["dir"])
+        self.mTopDirList = [DirHandler(self, dir_name)
+            for dir_name in self.mInfo["dir-list"]]
 
     def getEnv(self):
         return self.mEnv
 
-    def getTopDir(self):
-        return self.mTopDir
+    def iterTopDirList(self):
+        return iter(self.mTopDirList)
 
     def getName(self):
         return self.mName
