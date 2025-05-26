@@ -64,6 +64,9 @@ class ImageEntryPresentation:
                 self.mRounds["info"], {})
             self.mLearnData = self.mImageH.getAnnotationData(
                 self.mRounds["learn"])
+            if (self.mLearnData is None and self.mImageH.hasAnnotation(
+                    self.mRounds["learn"])):
+                self.mLearnData = {"status": None}
         else:
             self.mInfoData, self.mLearnData = {}, None
 
@@ -125,9 +128,9 @@ class ImageEntryPresentation:
         for key in ("save", "clear-changes", "undo", "redo"):
             self.mTopPre.getEnv().disableAction("img-entry-" + key,
                 key not in avail_op)
-        self.mTopPre.getEnv().disableAction("img-entry-to-learn",
-            self.mImageH is None or not self.mImageH.getDir().
-                getSmpSupport().canAddToLearn(self.mImageH))
+        #self.mTopPre.getEnv().disableAction("img-entry-to-learn",
+        #    self.mImageH is None or not self.mImageH.getDir().
+        #        getSmpSupport().canAddToLearn(self.mImageH))
         self.mTopPre.getEnv().disableAction("img-entry-out-of-learn",
             self.mImageH is None or self.mImageH.getDir().
                 getSmpSupport().getImageStatus(self.mImageH) is None)
@@ -243,6 +246,13 @@ class ImageEntryPresentation:
         return []
 
     def newPathCompleted(self, path_ctrl):
+        if self.mLearnData["status"] is None:
+            self.mImageH.startAnnotationChange(
+                self.mRounds["learn"],
+                {"status": "process"},
+                cur_loc = self._curLoc())
+            self.mImageH.finishAnnotationChange("learn")
+
         data = self.mImageH.startAnnotationChange(
             self.mRounds["learn"], cur_loc = self._curLoc())
         if "seq" not in data:
@@ -352,6 +362,7 @@ class ImageEntryPresentation:
             return
 
         if act.isAction("to-learn"):
+            assert False
             if self.mLearnData is None:
                 self.mImageH.startAnnotationChange(
                     self.mRounds["learn"],

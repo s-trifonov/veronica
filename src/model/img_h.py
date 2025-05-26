@@ -73,6 +73,9 @@ class ImageHandler:
         return ret
 
     def hasAnnotation(self, round_h):
+        if (round_h is not None and round_h.getType() == "learn"
+                and self.mDir.getSmpSupport().canAddToLearn(self)):
+            return True
         return (round_h is None or
             round_h.getName() in self.mRoundAnnotations)
 

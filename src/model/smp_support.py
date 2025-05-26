@@ -36,12 +36,17 @@ class SampleListingSupport:
 
         unready_count = sum(q_ready is False
             for q_ready in self.mImageNoDict.values())
-        if (len(self.mImageNoList) < len(self.mImageNoDict) and
+        while (len(self.mImageNoList) < len(self.mImageNoDict) and
                 unready_count < Config.SMP_UNREADY_FREE_COUNT):
+            q_done = False
             for idx, no in enumerate(self.mImageNoList):
                 if idx + 1 != no:
                     self.mImageNoList.insert(idx, idx+1)
+                    q_done = True
                     break
+            if not q_done:
+                self.mImageNoList.append(len(self.mImageNoList) + 1)
+            unready_count += 1
 
     def getImageNo(self, image_h):
         return self.mImageNoDict.get(image_h.getName(), -1)
