@@ -71,6 +71,12 @@ class ImagePresentation:
         self.checkOpacity()
 
     #==========================
+    def _setSceneRect(self, x0, y0, x1, y1):
+        self.mScene.setSceneRect(
+            -Config.VIS_DELTA + x0, -Config.VIS_DELTA + y0,
+            x1 + 2 * Config.VIS_DELTA, y1 + 2 * Config.VIS_DELTA)
+
+    #==========================
     def resetState(self):
         self.mCurImageH = self.mTopPre.getCurImage()
         pixmap_h = self.mTopPre.getImagePixmapHandler(self.mCurImageH)
@@ -82,9 +88,8 @@ class ImagePresentation:
         self.runMarkupCtrl(None)
         if self.mCurPixmapH in (None, False):
             self.mImgItem.hide()
-            self.mScene.setSceneRect(-Config.VIS_DELTA, -Config.VIS_DELTA,
-                Config.DEFAULT_IMAGE_WIDTH + 2 * Config.VIS_DELTA,
-                Config.DEFAULT_IMAGE_HEIGHT + 2 * Config.VIS_DELTA)
+            self._setSceneRect(0, 0,
+                Config.DEFAULT_IMAGE_WIDTH, Config.DEFAULT_IMAGE_HEIGHT + 2)
             self.mNotFoundItem.show()
         else:
             self.mNotFoundItem.hide()
@@ -92,8 +97,7 @@ class ImagePresentation:
             w, h = self.mCurPixmapH.getSize()
             self.mImgItem.setPos(0, 0)
             self.mImgItem.setOffset(0, 0)
-            self.mScene.setSceneRect(-Config.VIS_DELTA, -Config.VIS_DELTA,
-                w + 2 * Config.VIS_DELTA, h + 2 * Config.VIS_DELTA)
+            self._setSceneRect(0, 0, w, h)
             self.mImgItem.show()
         if not self.mStarted:
             scroll_bar = self.mGrView.verticalScrollBar()
@@ -126,7 +130,7 @@ class ImagePresentation:
         else:
             self.mGrView.setCursor(cursor)
 
-    def checkZoom(self, screen_pos = None):
+    def checkZoom(self):
         zoom = self.mTopPre.getCurZoom()
         if zoom == self.mCurScale:
             return
@@ -218,6 +222,9 @@ class ImagePresentation:
 
     #==========================
     def _setMarkPoints(self, points):
+        x0, y0 = 0, 0
+        x1, y1 = self.mCurPixmapH.getSize()
+
         while len(points) > len(self.mPointItems):
             point_item = QtWidgets.QGraphicsEllipseItem()
             point_item.hide()
@@ -230,8 +237,13 @@ class ImagePresentation:
             GraphicsSupport.readyPointMark(point_item, x, y)
             point_item.show()
             self.mPointUsageCount += 1
+            x0 = min(x0, x)
+            y0 = min(y0, y)
+            x1 = max(x1, x)
+            y1 = max(y1, y)
         for idx in range(self.mPointUsageCount, len(self.mPointItems)):
             self.mPointItems[idx].hide()
+        self._setSceneRect(x0, y0, x1, y1)
 
     def _clearMarkPoints(self):
         self._setMarkPoints([])

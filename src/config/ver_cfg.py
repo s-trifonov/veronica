@@ -31,7 +31,7 @@ class Config:
     SMP_KEY = "V0"
     SMP_UNREADY_FREE_COUNT = 5
 
-    VIS_DELTA = 5
+    VIS_DELTA = 20
     MIN_DIST = 20
     MIN_DIAMETER = 50
     MAX_PATH_POINTS = 15

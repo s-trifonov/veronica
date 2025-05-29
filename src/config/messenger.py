@@ -23,6 +23,10 @@ sMessagesV = {
     "menu.save.all":  ("Сохранить всё", 0),
     "menu.undo":      ("Откатить изменение", 0),
     "menu.redo":      ("Накатить изменение", 0),
+    "menu.zoom.in":   ("Сжать изображение", 0),
+    "menu.zoom.out":  ("Растянуть изображение", 0),
+    "menu.dump":      ("Dump markup(use with care!)", 0),
+
     "tab.repos":     ("На текущий элемент", 0),
     "tab.save":      ("Сохранить изменения", 0),
 

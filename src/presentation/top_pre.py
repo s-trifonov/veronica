@@ -117,6 +117,10 @@ class TopPresentation:
             self.dialogAbout()
             act.done()
             return
+        if act.isAction("menu-dump"):
+            self.mProject.dumpData()
+            act.done()
+            return
         if act.isAction("all-save"):
             # Nothing to do
             act.done()
@@ -130,6 +134,18 @@ class TopPresentation:
             return
         if act.isAction("veronica-raise"):
             self.getEnv().raiseMainOnTop()
+            act.done()
+            return
+        if act.isAction("image-zoom-in"):
+            if self.mCombo_Zoom.sibbling(-1):
+                self.mImagePre.checkZoom()
+                self.getEnv().needsUpdate()
+            act.done()
+            return
+        if act.isAction("image-zoom-out"):
+            if self.mCombo_Zoom.sibbling(1):
+                self.mImagePre.checkZoom()
+                self.getEnv().needsUpdate()
             act.done()
             return
 
@@ -197,7 +213,7 @@ class TopPresentation:
             return
         with RT_Guard():
             if self.mCombo_Zoom.sibbling(par):
-                self.mImagePre.checkZoom(pos)
+                self.mImagePre.checkZoom()
                 self.getEnv().needsUpdate()
 
     def getCurImage(self):

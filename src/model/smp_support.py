@@ -8,7 +8,6 @@ class SampleListingSupport:
         self.mSmpRoundH = smp_round_h
         self.mImageNoDict = None
         self.mImageNoList = None
-        self.mImageStatusDict = None
         self.resetState()
 
     def sameRound(self, round_h):
@@ -24,15 +23,11 @@ class SampleListingSupport:
         self.mImageNoDict = {rec[1] : idx + 1
             for idx, rec in enumerate(sheet)}
 
-        self.mImageStatusDict = {}
+        self.mImageNoList = []
         for image_h in self.mDirH.getImages():
-            learn_data = image_h.getAnnotationData(self.mSmpRoundH)
-            if learn_data is None:
-                continue
-            q_ready = learn_data.get("status") == "ready"
-            self.mImageStatusDict[
-                self.mImageNoDict[image_h.getName()]] = q_ready
-        self.mImageNoList = list(sorted(self.mImageStatusDict.keys()))
+            if self.getImageStatus(image_h) is not None:
+                self.mImageNoList.append(self.mImageNoDict[image_h.getName()])
+        self.mImageNoList.sort()
 
         unready_count = sum(q_ready is False
             for q_ready in self.mImageNoDict.values())
@@ -52,13 +47,17 @@ class SampleListingSupport:
         return self.mImageNoDict.get(image_h.getName(), -1)
 
     def getImageStatus(self, image_h):
-        no = self.getImageNo(image_h)
-        return self.mImageStatusDict.get(no)
+        learn_data = image_h.getAnnotationData(self.mSmpRoundH)
+        if learn_data is None:
+            return None
+        if learn_data.get("status") == "ready":
+            return True
+        if not learn_data.get("seq"):
+            return None
+        return False
 
     def canAddToLearn(self, image_h):
         no = self.getImageNo(image_h)
-        if no in self.mImageStatusDict:
-            return False
         return no in self.mImageNoList
 
     def getImages(self):

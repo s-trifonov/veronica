@@ -37,3 +37,15 @@ class AnnotationStorage:
         descr = {"_tp": "round", "name": name, "type": tp}
         self.mAgent.update_one(descr, {"$set": descr}, upsert = True)
         self.mRounds[name] = AnnotationRound(self, descr)
+
+    def getAllData(self):
+        ret = []
+        for descr in self.mAgent.find():
+            if descr.get("_tp") !=  "annotation":
+                continue
+            rep_it = dict()
+            for name, val in descr.items():
+                if name != "_id":
+                    rep_it[name] = val
+            ret.append(rep_it)
+        return ret

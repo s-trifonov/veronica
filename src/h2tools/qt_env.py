@@ -247,6 +247,8 @@ class QT_Environment(QtCore.QObject):
         RuntimeEnvironment.goQuit()
         self.mUICtrl.getTopWidget().close()
         self.mUIApp.getQTApp().quit()
+        print("On exit")
+        sys.exit()
 
     def getPreference(self, name):
         return self.mPreferences.getProperty(name)

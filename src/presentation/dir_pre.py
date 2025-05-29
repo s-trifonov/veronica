@@ -79,7 +79,6 @@ class DirImagesPresentation:
         self.mTreeWidget.setCurrentItem(item)
         self.mTreeWidget.scrollToItem(item)
 
-
     def update(self):
         if self.mRoundCombo.getValue() != self.mCurRoundVal:
             self.resetState()
@@ -175,6 +174,7 @@ class DirImagesPresentation:
             if not subdir_h.isEmpty(self.mCurRoundH):
                 items.append(self._fillDirItems(subdir_h, dir_item))
         smp_support = dir_h.getSmpSupport()
+        smp_support.resetState()
         if smp_support.sameRound(self.mCurRoundH):
             for image_h in smp_support.getImages():
                 items.append(self._makeTreeImageItem(dir_item, image_h))

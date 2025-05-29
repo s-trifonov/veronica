@@ -7,10 +7,13 @@ from h2tools.utils import getOsDirName, isWINDOWS
 
 _keep_compiler_happy = QtWebEngineWidgets
 
-interrupted = False
+env = None
+
 def signal_handler(signal, frame):
-    global interrupted
-    interrupted = True
+    global env
+    if env is not None:
+        print("here")
+        env.quit()
 
 #=========================================
 def runApp(qt_app, profile_path, src_path, project_path,
@@ -20,7 +23,7 @@ def runApp(qt_app, profile_path, src_path, project_path,
     from model.project import Project
     from presentation.top_pre import TopPresentation
     from config.ver_cfg import Config
-    global sPrefsDefault
+    global sPrefsDefault, env
     if debug_mode or test_mode:
         if debug_mode:
             Config.DEBUG_MODE = True
@@ -104,6 +107,8 @@ if __name__ == "__main__":
                 file = sys.stderr)
             sys.exit()
 
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGHUP, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
     qt_app = QtWidgets.QApplication(['', '--no-sandbox'])

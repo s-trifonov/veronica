@@ -1,4 +1,4 @@
-import json
+import json, os
 from .storage import AnnotationStorage
 from .dir_h import DirHandler
 #=========================================
@@ -60,3 +60,19 @@ class Project:
 
     def findObject(self, view_id):
         return self.mImgDict[view_id]
+
+    def dumpData(self):
+        dump_fname = None
+        idx = -1
+        while idx < 200 and dump_fname is None:
+            idx += 1
+            dump_fname = self.mProjPath + f".{idx:03d}.dump"
+            if os.path.exists(dump_fname):
+                dump_fname = None
+        if dump_fname is None:
+            self.mEnv.notifyStatus("Failed: too many dump files")
+            return
+        with open(dump_fname, "w", encoding="utf-8") as outp:
+            print(json.dumps(self.mAnnotations.getAllData(),
+                indent=4, sort_keys=True, ensure_ascii=False), file=outp)
+        self.mEnv.notifyStatus(f"Dump stored: ...{dump_fname[-45:]} ")
