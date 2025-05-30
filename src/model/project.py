@@ -76,3 +76,23 @@ class Project:
             print(json.dumps(self.mAnnotations.getAllData(),
                 indent=4, sort_keys=True, ensure_ascii=False), file=outp)
         self.mEnv.notifyStatus(f"Dump stored: ...{dump_fname[-45:]} ")
+
+    def reportMetrics(self):
+        rep_fname = None
+        idx = -1
+        while idx < 200 and rep_fname is None:
+            idx += 1
+            rep_fname = self.mProjPath + f".{idx:03d}.report"
+            if os.path.exists(rep_fname):
+                rep_fname = None
+        if rep_fname is None:
+            self.mEnv.notifyStatus("Failed: too many report files")
+            return
+        report = []
+        for dir_h in self.iterTopDirList():
+            dir_h.reportMetrics(report)
+
+        with open(rep_fname, "w", encoding="utf-8") as outp:
+            print(json.dumps(report,
+                indent=4, sort_keys=True, ensure_ascii=False), file=outp)
+        self.mEnv.notifyStatus(f"Report stored: ...{rep_fname[-45:]} ")

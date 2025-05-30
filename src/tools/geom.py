@@ -80,6 +80,15 @@ def polyDiameter(poly):
         for j in range(1, len(poly)))
 
 #=================================
+def polyCenter(poly):
+    ret = []
+    for j in (0, 1):
+        min_z = min(pp[j] for pp in poly)
+        max_z = max(pp[j] for pp in poly)
+        ret.append(int((min_z + max_z)/2))
+    return ret
+
+#=================================
 def checkCorrectPath(points, closed_mode, check_self_intersect=True):
     for idx, pl1 in enumerate(points):
         for pl2 in points[idx + 1:]:

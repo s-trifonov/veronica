@@ -3,6 +3,7 @@ from glob import glob
 from config.ver_cfg import Config
 from .img_h import ImageHandler
 from .smp_support import SampleListingSupport
+from .metrics import evalMetrics
 
 #=========================================
 class DirHandler:
@@ -83,3 +84,18 @@ class DirHandler:
 
     def getStatusMsg(self):
         return self.mStatusMsg
+
+    def reportMetrics(self, report):
+        for dir_h in self.getDirectories():
+            dir_h.reportMetrics(report)
+        rep = []
+        for image_h in self.mSmpSupport.getImages():
+            if self.mSmpSupport.getImageStatus(image_h) is not True:
+                continue
+            ldata = image_h.getAnnotationData(self.mProject.getRound("learn"))
+            rep.append(evalMetrics(ldata["seq"]))
+        if len(rep) > 0:
+            report.append({
+                "dir": self.getDirName(),
+                "rep":rep})
+        return len(rep) > 0

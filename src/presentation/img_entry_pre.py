@@ -1,6 +1,7 @@
-from h2tools.tools_qt import newQItem
+from h2tools.tools_qt import newQItem, qt_str
 from config.messenger import msg
 from model.v_types import VType
+from model.metrics import evalMetrics
 from .markup_ctrl import MarkupPathController
 from .detect_ctrl import DetectController
 
@@ -12,7 +13,7 @@ class ImageEntryPresentation:
         self.mTabBox = self.mTopPre.getEnv().getWidget("img-entry-tabbox")
         self.mTabs = {
             key: self.mTopPre.getEnv().getWidget("img-entry-tab-" + key)
-            for key in ("info", "learn", "detect")
+            for key in ("info", "learn", "detect", "metrics")
         }
 
         self.mRounds = {
@@ -46,6 +47,9 @@ class ImageEntryPresentation:
             "detect-line-params")
         self.mDetectCtrl = DetectController(self,
             self.mTopPre.getImagePre(), self.mDetectParamsLine)
+
+        self.mMetricsReport = self.mTopPre.getEnv().getWidget(
+            "img-metrics-report")
 
         if not self.mTopPre.getProject().hasAdvancedMode():
             self.mDetectCtrl = None
@@ -113,6 +117,15 @@ class ImageEntryPresentation:
                     newQItem(str(len(points)))])
                 _no += 1
         self.mInUpdate = False
+
+        if (self.mImageH is not None and
+                self.mImageH.getDir().getSmpSupport().
+                getImageStatus(self.mImageH) is True):
+            self.mTabs["metrics"].setDisabled(False)
+            self.mMetricsReport.setText(qt_str(
+                evalMetrics(self.mLearnData["seq"], report_mode=True)))
+        else:
+            self.mTabs["metrics"].setDisabled(True)
 
     def update(self):
         if self.mImageH is not self.mTopPre.getCurImage():

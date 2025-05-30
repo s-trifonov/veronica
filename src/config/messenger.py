@@ -26,6 +26,7 @@ sMessagesV = {
     "menu.zoom.in":   ("Сжать изображение", 0),
     "menu.zoom.out":  ("Растянуть изображение", 0),
     "menu.dump":      ("Dump markup(use with care!)", 0),
+    "menu.report.metrics":  ("Report metrics(use with care!)", 0),
 
     "tab.repos":     ("На текущий элемент", 0),
     "tab.save":      ("Сохранить изменения", 0),
@@ -64,6 +65,7 @@ sMessagesV = {
     "img.entry.tab.info":  ("Снимок", 0),
     "img.entry.tab.detect": ("Зырк", 0),
     "img.entry.tab.learn": ("Разметка", 0),
+    "img.entry.tab.metrics": ("Метр", 0),
 
     "info.edit.quality.title": ("Качество", 0),
     "info.edit.quality.tip": ("Оценка качества (0-отсутствие оценки)", 0),

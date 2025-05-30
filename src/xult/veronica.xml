@@ -27,6 +27,7 @@
         <menu title="menu.help">
           <menu-action  text="menu.about" command="menu-about"/>
           <menu-action  text="menu.dump" command="menu-dump"/>
+          <menu-action  text="menu.report.metrics" command="menu-report-metrics"/>
         </menu>
     </menu-bar>
     <grid placement="central">
@@ -116,6 +117,9 @@
                                         <line-edit id="detect-line-params"/>
                                         <push-button text="detect.line" command="img-entry-detect-line"/>
                                     </vbox>
+                                </tab>
+                                <tab id="img-entry-tab-metrics" text="img.entry.tab.metrics">
+                                    <plain-text-edit id="img-metrics-report"/>
                                 </tab>
                             </tab-box>
                         </vbox>

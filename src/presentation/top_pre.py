@@ -121,6 +121,10 @@ class TopPresentation:
             self.mProject.dumpData()
             act.done()
             return
+        if act.isAction("menu-report-metrics"):
+            self.mProject.reportMetrics()
+            act.done()
+            return
         if act.isAction("all-save"):
             # Nothing to do
             act.done()

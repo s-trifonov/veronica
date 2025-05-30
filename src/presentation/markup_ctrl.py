@@ -57,6 +57,9 @@ class MarkupPathController(MouseScenario_Generic):
     def getPathCount(self):
         return len(self.mPathList)
 
+    def getPathByIdx(self, idx):
+        return self.mPathList[idx].getPathCtrl()
+
     def getPathSeq(self):
         return [path_h.getPathCtrl().getInfo() for path_h in self.mPathList]
 
