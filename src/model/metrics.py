@@ -49,7 +49,6 @@ def evalMetrics(seq_info, report_mode=False):
             elif q_h == -1:
                 hier.append([idx1, idx0])
 
-    print("Hier=", hier)
     nodes_len = []
     total_br = 0
     int_idxs = set(range(len(v_path_seq)))
