@@ -36,6 +36,12 @@ class ImagePresentation:
         self.mImgItem.setOffset(0, 0)
         self.mImgItem.hide()
         self.mImgItem.setTransformationMode(QtCore.Qt.SmoothTransformation)
+
+        # self.mImgColorEffect = QtWidgets.QGraphicsColorizeEffect()
+        # self.mImgColorEffect.setColor(QtCore.Qt.white)
+        # self.mImgColorEffect.setStrength(1.)
+        # self.mImgItem.setGraphicsEffect(self.mImgColorEffect)
+
         self.mScene.addItem(self.mImgItem)
 
         self.mPolygonItems = []
@@ -144,7 +150,8 @@ class ImagePresentation:
         if opacity == self.mCurOpacity:
             return
         dd = opacity / 100.
-        self.mImgItem.setOpacity(dd)
+        self.mImgItem.setOpacity(min(1.,  dd))
+        # self.mImgColorEffect.setStrength(1. - (1. / max(1.,  dd)))
 
     #==========================
     def mapPos(self, pos):
@@ -180,7 +187,7 @@ class ImagePresentation:
         #w, h = self.mCurPixmapH.getSize()
         #if (rect.top() >= 0 and rect.left() >= 0 and
         #        rect.bottom() < h and rect.right() < w):
-        print("Tr:", base_map, mapped)
+        #print("Tr:", base_map, mapped)
         #self.mGrView.setTransform(transform)
 
     #==========================

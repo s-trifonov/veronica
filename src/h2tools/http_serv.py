@@ -1,8 +1,8 @@
 import os, traceback, logging, json, abc
 from io import StringIO
-from urllib.parse import parse_qs
-from cgi import parse_header, parse_multipart
 import logging.config
+from urllib.parse import parse_qs
+from multipart import parse_form_data
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
@@ -94,14 +94,6 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             loggingException("Exception on read request body")
             return ""
 
-    def _parsePOST_vars(self):
-        ctype, pdict = parse_header(self.headers['content-type'])
-        if ctype == 'multipart/form-data':
-            return parse_multipart(self.rfile, pdict)
-        if ctype == 'application/x-www-form-urlencoded':
-            return parse_qs(self._parsePOST_content(), keep_blank_values = 1)
-        return {}
-
     #===============================================
     def parseRequest(self):
         content = None
@@ -116,8 +108,13 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             if self.sPostContentMode:
                 content = self._parsePOST_content()
             else:
-                for a, v in self._parsePOST_vars().items():
-                    query_args[a] = v[0]
+                try:
+                    forms, _ = parse_form_data(self.headers)
+                    for a, v in forms.iterallitems():
+                        query_args[a] = v[0]
+                except Exception:
+                    loggingException("Exception on read request form data")
+
         return path, query_args, content
 
     #===============================================

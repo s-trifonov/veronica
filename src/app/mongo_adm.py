@@ -4,7 +4,7 @@ from pymongo import MongoClient
 parser = argparse.ArgumentParser()
 parser.add_argument("-u", "--url", default = "localhost:27017",
     help = "Mongo host URL address")
-parser.add_argument("-v", "--vault",  default = "Veronica",
+parser.add_argument("-v", "--vault",  default = "V0",
     help = "Mongo vault directory")
 parser.add_argument("data", nargs="?", help="Data in JSon format")
 run_args = parser.parse_args()

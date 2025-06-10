@@ -180,6 +180,7 @@
                 <item value="50" label="50%"/>
                 <item value="25" label="25%"/>
                 <item value="10" label="10%"/>
+                <!-- item value="200" label="200%"/ -->
             </combo-box>
             <separator orient="vertical"/>
             <spacer width="10" h-policy="minimum"/>

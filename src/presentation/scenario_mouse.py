@@ -113,8 +113,12 @@ class MouseScenario_NewPath(MouseEventListener):
             pos = self.mapPos(event)
             pre_path = self.mPath.checkPrePoint(pos)
             if pre_path is not None:
-                view_poly = self.mPath.drawPoly(pre_path)
-                cursor = QtCore.Qt.CrossCursor
+                try:
+                    view_poly = self.mPath.drawPoly(pre_path)
+                    cursor = QtCore.Qt.CrossCursor
+                except Exception:
+                    view_poly = None
+                    cursor = QtCore.Qt.ForbiddenCursor
         self.viewPoly(view_poly)
         self.setCursor(cursor)
 
@@ -285,8 +289,12 @@ class MouseScenario_Generic(MouseEventListener):
         changed = False
         if self.buttonIsLeft(event):
             if self.mCurModInfo is not None:
-                changed = self.mCurModInfo[0].keepModifyPos(
-                    self.mCurModInfo, pos)
+                try:
+                    changed = self.mCurModInfo[0].keepModifyPos(
+                        self.mCurModInfo, pos)
+                except Exception:
+                    # check it later
+                    changed = True
         self.setCurMod(None)
         self.onTouchCurPath()
         self.setCursor(QtCore.Qt.ArrowCursor)
