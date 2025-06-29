@@ -1,6 +1,7 @@
 import json, os
 from .storage import AnnotationStorage
 from .dir_h import DirHandler
+from .report import htmlFullReport
 #=========================================
 class Project:
     V_MODE = "Vesiculae.0"
@@ -61,38 +62,46 @@ class Project:
     def findObject(self, view_id):
         return self.mImgDict[view_id]
 
-    def dumpData(self):
-        dump_fname = None
+    def _locateNewFile(self, extension, max_files=200):
         idx = -1
-        while idx < 200 and dump_fname is None:
+        while idx < max_files:
             idx += 1
-            dump_fname = self.mProjPath + f".{idx:03d}.dump"
-            if os.path.exists(dump_fname):
-                dump_fname = None
+            fname = self.mProjPath + f".{idx:03d}.{extension}"
+            if not os.path.exists(fname):
+                return fname
+        self.mEnv.notifyStatus(f"Failed: too many {extension} files")
+        return None
+
+    def dumpData(self):
+        dump_fname = self._locateNewFile("dump")
         if dump_fname is None:
-            self.mEnv.notifyStatus("Failed: too many dump files")
             return
         with open(dump_fname, "w", encoding="utf-8") as outp:
             print(json.dumps(self.mAnnotations.getAllData(),
                 indent=4, sort_keys=True, ensure_ascii=False), file=outp)
         self.mEnv.notifyStatus(f"Dump stored: ...{dump_fname[-45:]} ")
 
-    def reportMetrics(self):
-        rep_fname = None
-        idx = -1
-        while idx < 200 and rep_fname is None:
-            idx += 1
-            rep_fname = self.mProjPath + f".{idx:03d}.report"
-            if os.path.exists(rep_fname):
-                rep_fname = None
-        if rep_fname is None:
-            self.mEnv.notifyStatus("Failed: too many report files")
-            return
+    def collectMetrics(self, max_count=None):
         report = []
         for dir_h in self.iterTopDirList():
-            dir_h.reportMetrics(report)
+            dir_h.collectMetrics(report, max_count)
+        return report
+
+    def reportMetricsJson(self, max_count=None):
+        rep_fname = self._locateNewFile("report")
+        if rep_fname is None:
+            return
+        all_data = self.collectMetrics(max_count)
 
         with open(rep_fname, "w", encoding="utf-8") as outp:
-            print(json.dumps(report,
+            print(json.dumps(all_data,
                 indent=4, sort_keys=True, ensure_ascii=False), file=outp)
+        self.mEnv.notifyStatus(f"Report stored: ...{rep_fname[-45:]} ")
+
+    def reportMetricsHtml(self, max_count=None):
+        rep_fname = self._locateNewFile("html")
+        if rep_fname is None:
+            return
+        all_data = self.collectMetrics(max_count)
+        htmlFullReport(all_data, rep_fname )
         self.mEnv.notifyStatus(f"Report stored: ...{rep_fname[-45:]} ")

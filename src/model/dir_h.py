@@ -85,15 +85,18 @@ class DirHandler:
     def getStatusMsg(self):
         return self.mStatusMsg
 
-    def reportMetrics(self, report):
+    def collectMetrics(self, report, max_count=None):
         for dir_h in self.getDirectories():
-            dir_h.reportMetrics(report)
+            dir_h.collectMetrics(report, max_count )
         rep = []
         for image_h in self.mSmpSupport.getImages():
             if self.mSmpSupport.getImageStatus(image_h) is not True:
                 continue
             ldata = image_h.getAnnotationData(self.mProject.getRound("learn"))
-            rep.append(evalMetrics(ldata["seq"]))
+            if "seq" in ldata:
+                rep.append(evalMetrics(ldata["seq"]))
+                if max_count is not None and len(rep) == max_count:
+                    break
         if len(rep) > 0:
             report.append({
                 "dir": self.getDirName(),

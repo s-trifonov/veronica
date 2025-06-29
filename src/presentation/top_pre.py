@@ -121,8 +121,12 @@ class TopPresentation:
             self.mProject.dumpData()
             act.done()
             return
-        if act.isAction("menu-report-metrics"):
-            self.mProject.reportMetrics()
+        if act.isAction("menu-report-metrics-json"):
+            self.mProject.reportMetricsJson()
+            act.done()
+            return
+        if act.isAction("menu-report-metrics-html"):
+            self.mProject.reportMetricsHtml()
             act.done()
             return
         if act.isAction("all-save"):
@@ -200,6 +204,7 @@ class TopPresentation:
 
     def doExit(self, can_return = False):
         if self.mExitReady:
+            self.mEnv.quit()
             return True
         self.mEnv.getUICtrl().checkPersistentProperties(self.mEnv)
         self.mExitReady = True

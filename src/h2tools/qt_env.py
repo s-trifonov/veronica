@@ -1,4 +1,4 @@
-import sys
+import sys, os, signal
 
 from PyQt5 import QtCore, QtWidgets
 from config.messenger import msg
@@ -242,13 +242,12 @@ class QT_Environment(QtCore.QObject):
         return ""
 
     def quit(self):
-        if self.mInHttpApp is not None:
-            self.mInHttpApp.stop()
+        #if self.mInHttpApp is not None:
+        #    self.mInHttpApp.stop()
         RuntimeEnvironment.goQuit()
         self.mUICtrl.getTopWidget().close()
         self.mUIApp.getQTApp().quit()
-        print("On exit")
-        sys.exit()
+        os.kill(os.getpid(), signal.SIGKILL)
 
     def getPreference(self, name):
         return self.mPreferences.getProperty(name)

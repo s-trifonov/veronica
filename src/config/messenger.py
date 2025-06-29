@@ -25,8 +25,12 @@ sMessagesV = {
     "menu.redo":      ("Накатить изменение", 0),
     "menu.zoom.in":   ("Сжать изображение", 0),
     "menu.zoom.out":  ("Растянуть изображение", 0),
-    "menu.dump":      ("Dump markup(use with care!)", 0),
-    "menu.report.metrics":  ("Report metrics(use with care!)", 0),
+    "menu.dump":
+        ("Сохранить полное состояние в файл", 0),
+    "menu.report.metrics.json":
+        ("Собрать отчёт в формате JSON", 0),
+    "menu.report.metrics.html":
+        ("Собрать отчёт в формате HTML", 0),
 
     "tab.repos":     ("На текущий элемент", 0),
     "tab.save":      ("Сохранить изменения", 0),
