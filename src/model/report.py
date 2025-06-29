@@ -93,7 +93,7 @@ class CaseReport:
         t_br = 0
         for rep in self.get("rep"):
             nodes += rep["nodes"]
-        t_br += rep["total-br"]
+            t_br += rep["total-br"]
         n_real_nodes = sum(int(val > 1) for val in nodes)
         nodes = np.array(nodes)
         d_histo = _histo(nodes, [2, 3, 4, 6])
