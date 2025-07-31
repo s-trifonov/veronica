@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+from io import StringIO
 
 #=================================
 PIXEL_SIZE = .231862
@@ -106,6 +107,43 @@ class CaseReport:
             ["Число"] + [str(val) for val in d_histo],
             ["Квоты (в %)"] + [_strPerc(val, sum(d_histo)) for val in d_histo]])
 
+
+    #=================================
+    def reportDetailed(self, detailed_outp):
+        print("<hr/>", file=detailed_outp)
+        print(f"<h2>Детализация по образцу {self.getName()}</h2>",
+            file=detailed_outp)
+        for idx, rep in enumerate(self.get('rep')):
+            self._reportOneDetailed(idx+1, rep, detailed_outp)
+
+    #=================================
+    def _reportOneDetailed(self, no, rep, detailed_outp):
+        img_name = rep["img"]
+        print(f"<h3>По изображению no={no}: {img_name}</h3>",
+            file=detailed_outp)
+        diameters = rep["diameters"]
+        print(f"<p>Диаметры [{len(diameters)}]:</p>", file=detailed_outp)
+        print("<table><tr><td>",
+            "</td><td>".join(str(val) for val in diameters),
+            "</td></tr></table>",
+            file=detailed_outp)
+        n_singles = rep["singles"]
+        print(f"<p>Одиночные везикулы:\t{n_singles}</p>",
+            file=detailed_outp)
+        sacs = rep["sacs"]
+        if len(sacs) > 0:
+            print(f"<p>Везикулы с вложениями [{len(sacs)}]:</p>",
+                file=detailed_outp)
+            print("<table>", file=detailed_outp)
+            print("<tr><td>число</td><td>ветвистость</td>",
+                "<td>Структура</td></tr>", file=detailed_outp)
+            for node_count, node_br, node_struct in sacs:
+                print(f"<tr><td>{node_count}</td><td>{node_br}</td>" +
+                    f"<td>{node_struct}</td></tr>",
+                    file=detailed_outp)
+            print("</table>", file=detailed_outp)
+        print(file=detailed_outp)
+
 #=================================
 def plainStatReport(stat_rep, outp=None):
     if outp is None:
@@ -160,7 +198,8 @@ def plainFullReport(all_data, outp=None):
         plainStatReport(stat_rep, outp)
 
 #=================================
-def htmlFullReport(all_data,  fname):
+def htmlFullReport(all_data,  fname, detailed=False):
+    detailed_outp = StringIO() if detailed else None
     with open(fname, "w", encoding="utf-8") as outp:
         print('''
 <!DOCTYPE html>
@@ -175,6 +214,8 @@ def htmlFullReport(all_data,  fname):
         for case_data in all_data:
             stat_rep = CaseReport(case_data)
             htmlStatReport(stat_rep, outp)
+            if detailed_outp is not None:
+                stat_rep.reportDetailed(detailed_outp)
             all_names.append(stat_rep.getName())
             if total_metrics is None:
                 total_metrics = [[key, [val]]
@@ -194,6 +235,8 @@ def htmlFullReport(all_data,  fname):
             print('<tr><td>', m_title, '</td><td>',
                 '</td><td>'.join(values), '</td></tr>', file=outp)
         print('</table>', file=outp)
+        if detailed_outp is not None:
+            outp.write(detailed_outp.getvalue())
         print('''
     </body>
 </html>''', file=outp)

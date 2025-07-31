@@ -31,6 +31,8 @@ sMessagesV = {
         ("Собрать отчёт в формате JSON", 0),
     "menu.report.metrics.html":
         ("Собрать отчёт в формате HTML", 0),
+    "menu.report.metrics.html.det":
+        ("Детализированный отчёт в формате HTML", 0),
 
     "tab.repos":     ("На текущий элемент", 0),
     "tab.save":      ("Сохранить изменения", 0),

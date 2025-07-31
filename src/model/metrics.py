@@ -4,11 +4,11 @@ from tools import geom
 from .markup_path import MarkupPathCtrl
 
 #=================================
-def evalMetrics(seq_info, report_mode=False):
+def evalMetrics(img_name, seq_info, report_mode=False):
     if report_mode:
         rep = StringIO()
     else:
-        rep_descr = dict()
+        rep_descr = {"img": img_name}
 
     v_path_seq = []
     vf_path_seq = []
@@ -38,6 +38,7 @@ def evalMetrics(seq_info, report_mode=False):
         print("Diameters:", diameters, file=rep)
     else:
         rep_descr["diameters"] = diameters
+        rep_descr["sacs"] = []
 
     hier = []
     for idx0 in range(len(v_path_seq)):
@@ -52,22 +53,28 @@ def evalMetrics(seq_info, report_mode=False):
     nodes_len = []
     total_br = 0
     int_idxs = set(range(len(v_path_seq)))
+
     while len(hier) > 0:
-        node_br, node_idxs = _selectNode(hier)
+        node_br, node_idxs, node_struct = _selectNode(hier)
         int_idxs -= node_idxs
-        if report_mode:
-            print("Node:", len(node_idxs), node_br, sorted(node_idxs), file=rep)
         nodes_len.append(len(node_idxs))
-        total_br += node_br
-    for sep_idx in sorted(int_idxs):
-        nodes_len.append(1)
+        assert len(node_idxs) > 1
         if report_mode:
-            print("Single:", sep_idx, file=rep)
+            print("Node:", len(node_idxs), node_br,
+                sorted(node_idxs), "struct:", node_struct, file=rep)
+            assert len(node_idxs) > 1 or node_struct == []
+        else:
+            rep_descr["sacs"].append([len(node_idxs), node_br, node_struct])
+        total_br += node_br
     nodes_len.sort()
+    for _ in int_idxs:
+        nodes_len.append(1)
     if report_mode:
+        print(f"Singles [{len(int_idxs)}]:", sorted(int_idxs), file=rep)
         print("Nodes count:", len(nodes_len), nodes_len, file=rep)
         print("Nodes branching:", total_br, file=rep)
     else:
+        rep_descr["singles"] = len(int_idxs)
         rep_descr["nodes"] = nodes_len
         rep_descr["total-br"] = total_br
 
@@ -151,11 +158,15 @@ def _selectNode(hier):
         del hier[idx]
 
     cnt, br_sum = 0, 0
+    node_struct = []
     while len(node_hier) > 0:
-        sub_hier_br, sub_hier_set = _selectNode(node_hier)
+        sub_hier_br, sub_hier_set, sub_struct = _selectNode(node_hier)
         cnt += 1
         br_sum += sub_hier_br
         node_int_idxs -= sub_hier_set
+        node_struct.append(sub_struct)
     cnt += len(node_int_idxs)
+    for _ in node_int_idxs:
+        node_struct.append([])
     node_branching = max(0, cnt - 1) + br_sum
-    return node_branching, node_idxs
+    return node_branching, node_idxs, node_struct

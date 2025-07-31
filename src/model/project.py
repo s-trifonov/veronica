@@ -98,10 +98,10 @@ class Project:
                 indent=4, sort_keys=True, ensure_ascii=False), file=outp)
         self.mEnv.notifyStatus(f"Report stored: ...{rep_fname[-45:]} ")
 
-    def reportMetricsHtml(self, max_count=None):
+    def reportMetricsHtml(self, max_count=None, detailed=False):
         rep_fname = self._locateNewFile("html")
         if rep_fname is None:
             return
         all_data = self.collectMetrics(max_count)
-        htmlFullReport(all_data, rep_fname )
+        htmlFullReport(all_data, rep_fname, detailed)
         self.mEnv.notifyStatus(f"Report stored: ...{rep_fname[-45:]} ")

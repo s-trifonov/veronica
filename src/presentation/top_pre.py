@@ -129,6 +129,10 @@ class TopPresentation:
             self.mProject.reportMetricsHtml()
             act.done()
             return
+        if act.isAction("menu-report-metrics-html-det"):
+            self.mProject.reportMetricsHtml(detailed=True)
+            act.done()
+            return
         if act.isAction("all-save"):
             # Nothing to do
             act.done()

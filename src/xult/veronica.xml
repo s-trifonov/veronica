@@ -28,6 +28,7 @@
           <menu-action  text="menu.about" command="menu-about"/>
           <menu-action  text="menu.dump" command="menu-dump"/>
           <menu-action  text="menu.report.metrics.html" command="menu-report-metrics-html"/>
+          <menu-action  text="menu.report.metrics.html.det" command="menu-report-metrics-html-det"/>
           <menu-action  text="menu.report.metrics.json" command="menu-report-metrics-json"/>
         </menu>
     </menu-bar>

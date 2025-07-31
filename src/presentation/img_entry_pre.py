@@ -123,7 +123,8 @@ class ImageEntryPresentation:
                 getImageStatus(self.mImageH) is True):
             self.mTabs["metrics"].setDisabled(False)
             self.mMetricsReport.setText(qt_str(
-                evalMetrics(self.mLearnData["seq"], report_mode=True)))
+                evalMetrics(self.mImageH.getName(),
+                    self.mLearnData["seq"], report_mode=True)))
         else:
             self.mTabs["metrics"].setDisabled(True)
 

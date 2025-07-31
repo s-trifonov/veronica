@@ -94,7 +94,7 @@ class DirHandler:
                 continue
             ldata = image_h.getAnnotationData(self.mProject.getRound("learn"))
             if "seq" in ldata:
-                rep.append(evalMetrics(ldata["seq"]))
+                rep.append(evalMetrics(image_h.getName(), ldata["seq"]))
                 if max_count is not None and len(rep) == max_count:
                     break
         if len(rep) > 0:
