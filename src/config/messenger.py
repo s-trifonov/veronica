@@ -12,6 +12,7 @@ sMessagesV = {
     "menu.vendor":     (''' trf@ya.ru ''', 0),
     "menu.file":       ("Пакет", 0),
     "menu.edit":       ("Pедактирование", 0),
+    "menu.reports":    ("Отчёты", 0),
     "menu.help":       ("Пoмощь", 0),
     "menu.prefs":      ("Настройки", 0),
     "menu.about":      ("О пpограмме", 0),
@@ -25,6 +26,7 @@ sMessagesV = {
     "menu.redo":      ("Накатить изменение", 0),
     "menu.zoom.in":   ("Сжать изображение", 0),
     "menu.zoom.out":  ("Растянуть изображение", 0),
+
     "menu.dump":
         ("Сохранить полное состояние в файл", 0),
     "menu.report.metrics.json":
@@ -33,6 +35,8 @@ sMessagesV = {
         ("Собрать отчёт в формате HTML", 0),
     "menu.report.metrics.html.det":
         ("Детализированный отчёт в формате HTML", 0),
+    "menu.report.metrics.distr":
+        ("Распределения метрик", 0),
 
     "tab.repos":     ("На текущий элемент", 0),
     "tab.save":      ("Сохранить изменения", 0),

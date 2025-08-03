@@ -117,20 +117,8 @@ class TopPresentation:
             self.dialogAbout()
             act.done()
             return
-        if act.isAction("menu-dump"):
-            self.mProject.dumpData()
-            act.done()
-            return
-        if act.isAction("menu-report-metrics-json"):
-            self.mProject.reportMetricsJson()
-            act.done()
-            return
-        if act.isAction("menu-report-metrics-html"):
-            self.mProject.reportMetricsHtml()
-            act.done()
-            return
-        if act.isAction("menu-report-metrics-html-det"):
-            self.mProject.reportMetricsHtml(detailed=True)
+        if act.isGroup("menu-report-"):
+            self.mProject.makeReport(act.getOpName())
             act.done()
             return
         if act.isAction("all-save"):

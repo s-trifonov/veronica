@@ -1,9 +1,15 @@
 import sys
 import numpy as np
 from io import StringIO
+from h2tools.utils import StoreArchiveHandler
 
 #=================================
-PIXEL_SIZE = .231862
+# PIXEL_SIZE = .231862
+PIXEL2NM = .46
+
+def pix2nm(size):
+    global PIXEL2NM
+    return round(PIXEL2NM * size)
 
 #=================================
 def _strFloat(val, qual=1):
@@ -52,7 +58,7 @@ class CaseReport:
         return self.get('dir')
 
     def getVCount(self):
-        return sum(len(rep["diameters"])
+        return sum(len(rep["m-diameters"])
             for rep in self.get('rep'))
 
     def getImgCount(self):
@@ -71,22 +77,32 @@ class CaseReport:
 
     #=================================
     def evalDiameters(self):
-        global PIXEL_SIZE
-        diameters = []
+        m_diameters = []
+        e_diameters = []
         for rep in self.get('rep'):
-            diameters += rep["diameters"]
-        diameters = np.array(diameters) * PIXEL_SIZE
-        d_histo = _histo(diameters, [20, 40, 60, 80])
-        self._regCommonMetric("Общее число везикул", str(len(diameters)))
+            m_diameters += rep["m-diameters"]
+            e_diameters += rep["e-diameters"]
+        m_diameters = np.array([pix2nm(dd) for dd in m_diameters])
+        e_diameters = np.array([pix2nm(dd) for dd in e_diameters])
+        de_histo = _histo(e_diameters, [40, 80, 120, 160])
+        dm_histo = _histo(m_diameters, [40, 80, 120, 160])
+
+        self._regCommonMetric("Общее число везикул", str(len(e_diameters)))
         self._regCommonMetric("Доля малых везикул (до 40 nm, в %)",
-            _strPerc(d_histo[0] + d_histo[1], sum(d_histo)) )
-        self._regCommonMetric("Усреднённый диаметр(в nm)",
-            _strFloat(diameters.mean(), 1))
+            _strPerc(de_histo[0] + de_histo[1], sum(de_histo)) )
+        self._regCommonMetric("Усреднённый эффективный диаметр(в nm)",
+            _strFloat(e_diameters.mean(), 1))
+        self._regCommonMetric("Усреднённый максимальный диаметр(в nm)",
+            _strFloat(m_diameters.mean(), 1))
         self._regTable("Диаметр везикул", [
-            ["", "до 20 nm", "от 20 до 40",
-                "от 40 до 59", "от 60 до 79", "от 80 nm"],
-            ["Число"] + [str(val) for val in d_histo],
-            ["Квоты (в %)"] + [_strPerc(val, sum(d_histo)) for val in d_histo]])
+            ["", "до 40 nm", "от 40 до 79",
+                "от 80 до 119", "от 120 до 159", "от 160 nm"],
+            ["(Eff) Число"] + [str(val) for val in de_histo],
+            ["(Eff) Квоты (в %)"] + [_strPerc(val, sum(de_histo))
+                for val in de_histo],
+            ["(Max) Число"] + [str(val) for val in dm_histo],
+            ["(Max) Квоты (в %)"] + [_strPerc(val, sum(dm_histo))
+                for val in dm_histo]])
 
     #=================================
     def evalBranchness(self):
@@ -94,7 +110,7 @@ class CaseReport:
         t_br = 0
         for rep in self.get("rep"):
             nodes += rep["nodes"]
-            t_br += rep["total-br"]
+            t_br += rep.get("total-br", 0)
         n_real_nodes = sum(int(val > 1) for val in nodes)
         nodes = np.array(nodes)
         d_histo = _histo(nodes, [2, 3, 4, 6])
@@ -121,12 +137,17 @@ class CaseReport:
         img_name = rep["img"]
         print(f"<h3>По изображению no={no}: {img_name}</h3>",
             file=detailed_outp)
-        diameters = rep["diameters"]
-        print(f"<p>Диаметры [{len(diameters)}]:</p>", file=detailed_outp)
-        print("<table><tr><td>",
-            "</td><td>".join(str(val) for val in diameters),
-            "</td></tr></table>",
+        m_diameters  = rep["m-diameters"]
+        e_diameters = rep["e-diameters"]
+        print(f"<p>Диаметры [{len(m_diameters)}]:</p>",
             file=detailed_outp)
+        print("<table>", file=detailed_outp)
+        print("<tr><td>(Eff):</td><td>",
+            "</td><td>".join(str(pix2nm(val)) for val in e_diameters),
+            "</td></tr>", file=detailed_outp)
+        print("<tr><td>(Max):</td><td>",
+            "</td><td>".join(str(pix2nm(val)) for val in m_diameters),
+            "</td></tr>", file=detailed_outp)
         n_singles = rep["singles"]
         print(f"<p>Одиночные везикулы:\t{n_singles}</p>",
             file=detailed_outp)
@@ -240,4 +261,41 @@ def htmlFullReport(all_data,  fname, detailed=False):
         print('''
     </body>
 </html>''', file=outp)
+
 #=================================
+def distrFullReport(all_data,  fname):
+    zip_h = StoreArchiveHandler(fname)
+    for descr in all_data:
+        case_name = descr["dir"]
+        zip_h.addFile(case_name + ".distr",
+            _prepareDistr(case_name, descr["rep"]))
+    zip_h.close()
+
+#=================================
+def _prepareDistr(case_name, case_data):
+    outp = StringIO()
+
+    counts = [0, 0, 0, 0]
+    for rep in case_data:
+        counts[0] += 1
+        counts[1] += len(rep["m-diameters"])
+        counts[2] += len(rep["nodes"])
+        counts[3] += sum(val == 1 for val in rep["nodes"])
+    print("## Metrics distributions for case:", case_name, file=outp)
+    print(f"## Images: {counts[0]}, vesiculae: {counts[1]}, "
+        f"nodes: {counts[2]}, singles: {counts[3]}", file=outp)
+
+    for title, key in [
+            ("Eff-diameters", "e-diameters"),
+            ("Nodes Size", "nodes"),
+            ("Nodes Branchness", "nodes-br"),
+            ("Max-Diameters", "m-diameters")]:
+        print("##---------------", file=outp)
+        print("#", title, file=outp)
+        for rep in case_data:
+            for val in rep[key]:
+                print(val, file=outp)
+    return outp.getvalue()
+
+
+

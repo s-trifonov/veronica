@@ -1,7 +1,7 @@
 import json, os
 from .storage import AnnotationStorage
 from .dir_h import DirHandler
-from .report import htmlFullReport
+from .report import htmlFullReport, distrFullReport
 #=========================================
 class Project:
     V_MODE = "Vesiculae.0"
@@ -72,36 +72,38 @@ class Project:
         self.mEnv.notifyStatus(f"Failed: too many {extension} files")
         return None
 
-    def dumpData(self):
-        dump_fname = self._locateNewFile("dump")
-        if dump_fname is None:
-            return
-        with open(dump_fname, "w", encoding="utf-8") as outp:
-            print(json.dumps(self.mAnnotations.getAllData(),
-                indent=4, sort_keys=True, ensure_ascii=False), file=outp)
-        self.mEnv.notifyStatus(f"Dump stored: ...{dump_fname[-45:]} ")
-
-    def collectMetrics(self, max_count=None):
-        report = []
-        for dir_h in self.iterTopDirList():
-            dir_h.collectMetrics(report, max_count)
-        return report
-
-    def reportMetricsJson(self, max_count=None):
-        rep_fname = self._locateNewFile("report")
+    def makeReport(self, rep_mode, max_count=None):
+        file_kind = {
+            "dump":             "dump",
+            "metrics-json":     "report",
+            "metrics-html":     "html",
+            "metrics-html-det": "html",
+            "metrics-distr":    "zip"}[rep_mode]
+        rep_fname = self._locateNewFile(file_kind)
         if rep_fname is None:
             return
-        all_data = self.collectMetrics(max_count)
+        rep_kind_title = "Report"
+        if rep_mode == "dump":
+            rep_kind_title = "Dump"
+            with open(rep_fname, "w", encoding="utf-8") as outp:
+                print(json.dumps(self.mAnnotations.getAllData(),
+                    indent=4, sort_keys=True, ensure_ascii=False), file=outp)
+        else:
+            assert rep_mode.startswith("metrics-")
+            all_data = []
+            for dir_h in self.iterTopDirList():
+                dir_h.collectMetrics(all_data, max_count)
 
-        with open(rep_fname, "w", encoding="utf-8") as outp:
-            print(json.dumps(all_data,
-                indent=4, sort_keys=True, ensure_ascii=False), file=outp)
-        self.mEnv.notifyStatus(f"Report stored: ...{rep_fname[-45:]} ")
+            if rep_mode == "metrics-json":
+                with open(rep_fname, "w", encoding="utf-8") as outp:
+                    print(json.dumps(all_data,
+                    indent=4, sort_keys=True, ensure_ascii=False), file=outp)
+            elif rep_mode.startswith("metrics-html"):
+                htmlFullReport(all_data, rep_fname,
+                    detailed=rep_mode.endswith("-det"))
+            else:
+                assert rep_mode == "metrics-distr"
+                distrFullReport(all_data, rep_fname)
 
-    def reportMetricsHtml(self, max_count=None, detailed=False):
-        rep_fname = self._locateNewFile("html")
-        if rep_fname is None:
-            return
-        all_data = self.collectMetrics(max_count)
-        htmlFullReport(all_data, rep_fname, detailed)
-        self.mEnv.notifyStatus(f"Report stored: ...{rep_fname[-45:]} ")
+        self.mEnv.notifyStatus(
+            f"{rep_kind_title} stored: ...{rep_fname[-45:]}")

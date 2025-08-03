@@ -176,7 +176,14 @@ def area(points):
         dd = delta(points[0], points[idx])
         res += xmult(d1, dd)
         d1 = dd
-    return res
+    return res / 2
+
+#=================================
+def polyEffectiveDiameter(poly):
+    if len(poly) < 2:
+        return 0
+    p_area = abs(area(poly))
+    return 2 * math.sqrt(p_area/3.14)
 
 #=================================
 sDEBUG_SEGMENTS = None

@@ -28,16 +28,20 @@ def evalMetrics(img_name, seq_info, report_mode=False):
         rep_descr["count-v"] = len(v_path_seq)
         rep_descr["count-frag"] = len(vf_path_seq)
 
-    diameters = [int(geom.polyDiameter(points))
+    m_diameters = [int(geom.polyDiameter(points))
+        for points in v_path_seq]
+
+    e_diameters = [int(geom.polyEffectiveDiameter(points))
         for points in v_path_seq]
     centers = [geom.polyCenter(points)
         for points in v_path_seq]
 
-    diameters.sort()
     if report_mode:
-        print("Diameters:", diameters, file=rep)
+        print("Max-Diameters(px):", m_diameters, file=rep)
+        print("Eff-Diameters(px):", e_diameters, file=rep)
     else:
-        rep_descr["diameters"] = diameters
+        rep_descr["m-diameters"] = m_diameters
+        rep_descr["e-diameters"] = e_diameters
         rep_descr["sacs"] = []
 
     hier = []
@@ -51,11 +55,15 @@ def evalMetrics(img_name, seq_info, report_mode=False):
                 hier.append([idx1, idx0])
 
     nodes_len = []
-    total_br = 0
+    nodes_br = []
     int_idxs = set(range(len(v_path_seq)))
 
+    sheet = []
     while len(hier) > 0:
-        node_br, node_idxs, node_struct = _selectNode(hier)
+        sheet.append(_selectNode(hier))
+    sheet.sort()
+
+    for _, node_br, node_idxs, node_struct in sheet:
         int_idxs -= node_idxs
         nodes_len.append(len(node_idxs))
         assert len(node_idxs) > 1
@@ -65,10 +73,11 @@ def evalMetrics(img_name, seq_info, report_mode=False):
             assert len(node_idxs) > 1 or node_struct == []
         else:
             rep_descr["sacs"].append([len(node_idxs), node_br, node_struct])
-        total_br += node_br
-    nodes_len.sort()
+        nodes_br.append(node_br)
+    total_br = sum(nodes_br)
     for _ in int_idxs:
         nodes_len.append(1)
+        nodes_br.append(-1)
     if report_mode:
         print(f"Singles [{len(int_idxs)}]:", sorted(int_idxs), file=rep)
         print("Nodes count:", len(nodes_len), nodes_len, file=rep)
@@ -76,6 +85,7 @@ def evalMetrics(img_name, seq_info, report_mode=False):
     else:
         rep_descr["singles"] = len(int_idxs)
         rep_descr["nodes"] = nodes_len
+        rep_descr["nodes-br"] = nodes_br
         rep_descr["total-br"] = total_br
 
     if report_mode:
@@ -160,7 +170,7 @@ def _selectNode(hier):
     cnt, br_sum = 0, 0
     node_struct = []
     while len(node_hier) > 0:
-        sub_hier_br, sub_hier_set, sub_struct = _selectNode(node_hier)
+        _, sub_hier_br, sub_hier_set, sub_struct = _selectNode(node_hier)
         cnt += 1
         br_sum += sub_hier_br
         node_int_idxs -= sub_hier_set
@@ -169,4 +179,4 @@ def _selectNode(hier):
     for _ in node_int_idxs:
         node_struct.append([])
     node_branching = max(0, cnt - 1) + br_sum
-    return node_branching, node_idxs, node_struct
+    return -len(node_idxs), node_branching, node_idxs, node_struct
